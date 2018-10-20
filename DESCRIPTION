@@ -1,0 +1,11 @@
+Package: crl
+Type: Package
+Title: R interface to interactive network analysis
+Version: 1.0
+Author: Qi Wang<qwang.big@gmail.com>, Carl Herrmann<c.herrmann@dkfz.de>
+Description: R interface to interactive network analysis.
+License: MIT
+LazyData: TRUE
+LinkingTo: Rcpp
+Depends: R (>= 3.1.0), GenomicRanges, igraph, stringr, enrichR
+Imports: S4Vectors, XVector, GenomeInfoDb, IRanges, ggplot2, reshape2, GenomicRanges, preprocessCore, Rcpp, MASS, parallel
