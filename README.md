@@ -26,7 +26,7 @@ Given that the enhancers from GeneHancer database are an ensemble of all tissues
 Enhancer within 1Mb distance to the TSS are considered potential interating region. In a common sense, the interactions should not cross the topologically associating domains (TAD) boundary. Therefore, we compiled a cell-type specific enhancer-promoter interaction list by excluding the interactions not within the same TAD from [GSE87112](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE87112). Enhancer-promoter interactions probability are estimated using a power-law decay function based on the distances to the TSS. Enhancer-promoter distances for sample tissues can be downloaded from [https://github.com/qwang-big/crl-data/PEdistances](https://github.com/qwang-big/crl-data/tree/master/PEdistances), including:
  - H1: H1 e
 
-In practice, as TADs between different cell types are relative conserved ([Schmitt AD, 2016](#schmitt-ad)), one can use the H1 cell line in case the TAD of corresponding cell type is not available. 
+In practice, as TADs between different cell types are relative conserved ([Schmitt AD](#schmitt-ad)), one can use the H1 cell line in case the TAD of corresponding cell type is not available. 
 
 First Tab:
 ```sh
@@ -96,7 +96,7 @@ Read in the table containing file location, group, dataset information as a **da
 ```r
 data <- importBW(meta, bed)
 ```
-to import the density for each regions. *ImportBW* use an external C function from [libBigWig](), which was compiled with GNU gcc and linked with a static C library during *Eier* installation on Linux.  For Windows/Mac OS users, you need to create your platform specific static library (**libBigWig.a**, under *src/libBigWig*) by your own. 
+to import the density for each regions. *ImportBW* use an external C function from [libBigWig](), which was compiled with GNU gcc and linked with a static C library during *Eier* installation on Linux.  For Windows/Mac OS users, you need to create your platform specific static library (**libBigWig.a**, under *src/libBigWig*) by your own. The output is equivalent to using *bigWigAverageOverBed* if BigWig files were processed separately, which can be loaded with another procedure instead. 
 
 ## Filter out unspecific enhancers
 We only took the regions which are more likely to be true enhancers, therefore we use the following function to get the indices which overlapped with enhancer histone marks (H3K4me1 in the following case). The peaks identified by Roadmap Epigenetics Project were retrieved from [http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated](http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated), and run:
@@ -108,8 +108,9 @@ i <- filterPeak(c("E003-H3K4me1.narrowPeak","E006-H3K4me1.narrowPeak"), bed, gro
 ## Measure combinatorial effect of epigenetic alterations
 We use [dPCA](http://www.biostat.jhsph.edu/~hji/dpca/) to measure combinatorial effect of epigenetic alterations. The software is already integrated into *Eier* as an external C function, which was compiled with GNU gcc and linked with a static C library during *Eier* installation on Linux.  For Windows/Mac OS users, you need to create your platform specific static library (**libdpca.a**, under *src/dpca*) by your own. 
 ```r
-res <- dPCA(meta, bed[i,], data[i,], datasets=1:3, transform=1:3, normlen=1:3, verbose=T)
+res <- dPCA(meta, bed[i,], data[i,], datasets=1:3, transform=1:3, normlen=1:3, verbose=TRUE)
 ```
+
 The output *res* is a named list which has three keys: *gr*, *Dobs*, and *proj*.
 
 * **gr**
@@ -142,48 +143,76 @@ H1 <- read.table('H1.hg19.pair')
 
 * Transform the P-E interactions from bp to Mb:
 ```r
-H1[,3]=abs(H1[,3]/1000000)
+H1[,3] <- abs(H1[,3]/1000000)
 ```
 
-* Apply a power-decay function to represent the likelihood of P-E interactions. The choice of power-coefficient is explained in Figure 3.14b of Qi Wang's dissertation. We recommand using -20 for all the test cases. 
+* Apply a power-decay function to represent the likelihood of P-E interactions. The choice of power-coefficient is explained in Figure 3.11 and Figure 3.14b of Qi Wang's dissertation. We recommand using -20 for all the test cases. 
 ```r
-H1[,3]=exp(-20*H1[,3]+1)
+H1[,3] <- exp(-20*H1[,3]+1)
 ```
 
-## Get rank of the promoters, which explain the significance of promoter alterations
-Use the following function to get the order of promoters sorted by _nPC_, the ones on top of the list indicates higher importance of the corresponding gene. 
-```{r, eval = FALSE}
-id <- getId(res$gr$id, type="gene")
+## Using PageRank to rank the epigenetic alterations from both enhancers and promoters.
+The PageRank will take in the alteration contribution from enhancers, resulting the ranks of associated promoters get promoted if targeted by highly altered enhancers. 
+```r
+res$pg <- pageRank(res$gr, H1)
 ```
 
-## Using PageRank to rank the importance of the alterations.
-The PageRank will take in the alteration contribution from enhancers, resulting the ranks of associated promoters get promoted if targeted by high-rank enhancers. 
-```{r, eval = FALSE}
-p <- pageRank(res$gr$id, P, fun="logit")
+## Get the rank of only promoters as well, which will be used to compare with the PageRank rankings. 
+Use the following function to get the order of promoters sorted by PC1, the ones on top of the list indicates higher alteration of the corresponding gene. 
+```r
+res$pg$prom <- getPromId(res$gr, pc="PC1")
 ```
 
-## Use literature derived marker genes as a metric to evaluate the ranking
-```{r, eval = FALSE}
-rid <- getId(names(p), type="gene")
-MSC <- unique(read.table('~/tmp/pk/msc', stringsAsFactors = FALSE)[,1])
-plotRank(list('promoter'=id, 'enhancer'=rid), MSC)
+## Use literature-derived marker genes as a metric for evaluating the ranking
+Cancer and cell-type specific marker genes are listed in Table S2 & 3 of Qi Wang's dissertation, which are already compiled as an R object and can be loaded with: 
+```r
+data(markers)
 ```
 
+The Empirical Cumulative Distribution Function (ECDF) of the marker gene positions in each ranking list can be plotted with:
+```r
+plotRank(res$pg, markers$CLL)
+```
+, where we use the CLL marker genes for this test, and the area under the curve (AUC) of each ranking list is described in the legend. 
+
+
+## Network analysis of the enriched pathways of significant epigenetic alterated genes
+
+# Outputs
+The following commands need to be executed to generate HTML outputs for interactive exploration of the enriched networks, epigenetic browser, rank comparisons and benchmarking (ROC curves). 
+To begin with, a prefix variable should be set corresponding to the experiment first, as for this test case we set: 
+```r
+prefix = "CLL"
+```
+
+Write the two ranking list to a CSV file for comparison, importances of the genes are ordered from the top to the bottom of the list.
+```r
+writeRank(res$pg[[1]], res$pg$prom, prefix)
+```
+
+Write the normalized epigenome signals of the two groups, labels of the two groups are provided by user. 
+```r
+writeData(res$gr, c("CLL", "Bcell"), prefix)
+```
+## 
 
 # Case studies
-Epigenetic and expression data were downloaded from [**EdaccData Release-9**](http://genboree.org/EdaccData/Release-9/experiment-sample/), [**CEEHRC**](http://www.epigenomes.ca/), [**IHEC**](http://ihec-epigenomes.org/). 
+Epigenetic and expression data were downloaded from [**EdaccData Release-9**](http://genboree.org/EdaccData/Release-9/experiment-sample/), [**CEEHRC**](http://www.epigenomes.ca/), [**BLUEPRINT**](). 
 
 # Acknowledgements
 The results presented here are in part based upon data generated by The Canadian Epigenetics, Epigenomics, Environment and Health Research Consortium (CEEHRC) initiative funded by the Canadian Institutes of Health Research (CIHR), Genome BC, and Genome Quebec. Information about CEEHRC and the participating investigators and institutions can be found at http://www.cihr-irsc.gc.ca/e/43734.html. 
 
 # References
-(### schmitt-ad)
-Schmitt AD, Hu M, Jung I, et al. A Compendium of Chromatin Contact Maps Reveals Spatially Active Regions in the Human Genome. Cell Reports. 2016;17(8):2042–2059.
+## Schmitt AD, Hu M, Jung I, et al. A Compendium of Chromatin Contact Maps Reveals Spatially Active Regions in the Human Genome. Cell Reports. 2016;17(8):2042–2059.
 
-License
+# License
 ----
 
 MIT
+
+# Supplymentary Info
+## 
+![### bigwigaverageoverbed]
 
 # Session Info
 ```r
