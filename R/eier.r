@@ -61,38 +61,6 @@ filterPeak <- function(files, ref, group=NULL, filter = c("both", "enhancer", "p
   unique(c(i, which(ref$id %in% filterRgn(region, ref)$id)))
 }
 
-.d2 <- function(x) {
-  c(x, -x)
-}
-
-genModel <- function(file, minDist=0, minCount=3, title="", verbose = TRUE) {
-  m <- read.table(file,stringsAsFactors = FALSE)
-  m <- m[m[,1]>=minDist,]
-  m <- m[m[,2]>=minCount,]
-  x <- m[,1]
-  y <- m[,2]
-  model=lm(log(y) ~ x)
-
-  if (verbose){
-  print(summary(model))
-  print(model$coefficients)
-  print(summary(model)$adj.r.squared)
-  coeff <- model$coefficients
-  myPredict <- predict(model)
-  ix <- order(x)
-  plot(x, log(y), xlab="distance (bp)", ylab="log(counts)", main=title) #,xaxt = 'n'
-  #axis(1, at = seq(0, 10000, by = 2000), labels=seq(0, 1000, by = 200), las=1)
-  lines(x[ix], myPredict[ix], col=2, lwd=2)
-  }
-  model
-}
-
-distProb <- function(file, model) {
-  x <- read.table(file,stringsAsFactors = FALSE)
-  x[,3] <- exp(model$coefficients[2]*abs(x[,3]) + model$coefficients[1])
-  x
-}
-
 combineRgn <- function(files) {
   region <- readBED(files[1])
   if (length(files)>1){
@@ -286,22 +254,15 @@ getId2 <- function(id, type = c("gene", "all", "enhancer", "promoter", "original
     rowMeans(x)
 }
 
-plotData <- function(data, dPC, meta, datasetId, groupId=1:2, pc="PC1",xlab='group 1',ylab='group 2',title="", saveFile=FALSE){
-  rg <- max(abs(c(floor(min(dPC)),ceiling(max(dPC))))) * 10
-  cols <- colorRampPalette(c('red','white','blue'))(rg*2)
-  x <- .means(data[,meta$dataset==datasetId & meta$group==groupId[1]])
-  y <- .means(data[,meta$dataset==datasetId & meta$group==groupId[2]])
-  lim <- c(floor(min(c(x[x<0],y[y<0]))),ceiling(max(c(x[x>0],y[y>0]))))
+plotD <- function(Dobs, labels, captions=NULL, title="", saveFile=FALSE){
   if (saveFile) png(paste0(title,'.png'))
-  plot(x,y,xlim=lim,ylim=lim,xlab=xlab,ylab=ylab,col=cols[round(dPC)*10+rg],main=title)
-  if (saveFile) dev.off()
-}
-
-plotD <- function(Dobs, labels, captions,title="", saveFile=FALSE){
-  if (saveFile) png(paste0(title,'.png'))
+  captions <- if (is.null(captions))
+    rep("",ncol(Dobs))
+  else
+    paste0(" (",captions,")")
   par(mfrow=c(2,4))
   for(i in 1:ncol(Dobs))
-  barplot(prcomp(Dobs)$rotation[,i], names=labels, main=paste0("PC",i," (",captions[i],")"),las=2)
+  barplot(prcomp(Dobs)$rotation[,i], names=labels, main=paste0("PC",i,captions[i]), las=2)
   par(mfrow=c(1,1))
   if (saveFile) dev.off()
 }
@@ -314,35 +275,6 @@ exportD <- function(Dobs, labels, file){
 	x <- t(prcomp(Dobs)$rotation)
 	colnames(x) <- labels
 	write.csv(x,file=file,row.names=F,quote=F)
-}
-
-plotPCgrp <- function(df, title="", offset=4){
-  gr <- df[order(df$PC1),]
-  cols <- rep("black", nrow(gr))
-  cols[!isEnh(gr$id)] <- "red"
-  plot(seq_len(nrow(gr)), gr$PC1, col=cols, pch=19, xlab="Index", ylab="PC1")
-  legend(0, offset, legend=c("Enhancer","Promoter"), col=c("black","red"), lty=1, cex=0.8)
-}
-
-plotPGIDs <- function(pgId, id, ref, title=""){
-  x <- posId(id, ref, sort=FALSE)
-  y <- posId(pgId, ref, sort=FALSE)
-  plot(x, y, xlab="Promoter only",ylab="Promoter+Enhancer", main=title)
-  abline(0,1, lty = 2)
-  text(x, y, labels=names(x), cex= 0.7, pos=3)
-}
-
-plotPC <- function(df, title=""){
-  dx <- max(abs(df$PC1))
-  dy <- max(abs(df$PC2))
-  plot(df$PC1, df$PC2, main=title, xlab="PC1", ylab="PC2", xlim=c(-dx,dx), ylim=c(-dy,dy))
-  abline(h=0, v=0, lty=2)
-  text(df$PC1, df$PC2, df$id)
-}
-
-.svg_open <- function(file){
-  #svglite(file = file)
-  svg(filename = file)
 }
 
 .trapz <- function (x, y) {
@@ -358,47 +290,6 @@ posId <- function(x, pos, sort=TRUE){
   sort(x[!is.na(x)], decreasing = FALSE)
   else
   x[!is.na(x)]
-}
-
-writeAUC <- function(x, row.names, col.names, file) {
-  df <- matrix(unlist(x),ncol=length(col.names),byrow=TRUE)
-  rownames(df) <- row.names
-  colnames(df) <- col.names
-  write.table(df, file, quote=FALSE, sep='\t', row.names=TRUE, col.names=TRUE)
-}
-
-plotAUC <- function(lis, file=NA) {
-  df <- data.frame(do.call("rbind",lapply(1:length(lis),function(i) cbind(lis[[i]],names(lis[[i]]),names(lis[i])))),row.names = NULL)
-  colnames(df) <- c("AUC","PC","type")
-  df$AUC <- as.numeric(df$AUC)
-	f16 <- element_text(size=16)
-	f20 <- element_text(size=20)
-  if (!is.na(file)) .svg_open(file)
-  print(ggplot(df,aes(type,AUC,colour=Function))+ geom_point(size = 3) + theme_classic() + theme(axis.text=f16, axis.title=f20, legend.text=f16, legend.title=f16))
-  if (!is.na(file)) dev.off()
-}
-
-plotAUCBar <- function(x, row.names, col.names, file=NA) {
-  df <- matrix(unlist(x),ncol=length(col.names),byrow=TRUE)
-  rownames(df) <- row.names
-  colnames(df) <- col.names
-  df <- melt(df)
-  colnames(df) <- c("fun","type","AUC")
-  if (!is.na(file)) .svg_open(file)
-  print(ggplot(df, aes(x=fun, y=AUC, fill=type)) + geom_bar(stat="identity", position = "dodge") + ylim(0,1))
-  if (!is.na(file)) dev.off()
-}
-
-.pr <- function(tp, fp, fn){
-  c(tp/(tp+fp), tp/(tp+fn))
-}
-
-.pr2 <- function(tp, n, L){
-  c(tp/n, tp/L)
-}
-
-calcPR <- function(rank, len, win){
-  sapply(seq(1,len,win), function(i) .pr2(length(which(rank<i)), i, length(rank)))
 }
 
 #this is an accessory function, that determines the number of points below a diagnoal passing through [x,yPt]
@@ -417,40 +308,12 @@ calcCutoff <- function(inputVector){
 	y_cutoff <- inputVector[xPt] #The y-value at this x point. This is our cutoff.
 }
 
-plotPR <- function(x, pos, title="", win=100, ylim=2e-2, file=NA){
-  cols <- colorRampPalette(c('red','blue','green'))(length(x))
-  len <- length(x[[1]])
-  auc <- rep(0, length(x))
-  if (!is.na(file)) .svg_open(file)
-  pr <- calcPR(posId(x[[1]],pos), len, 100)
-  plot(pr[2,], pr[1,], type='l', col=cols[1], main=title, xlab="Recall", ylab="Precision", ylim=c(0,ylim))
-  if (length(x)>1){
-    for(i in 2:length(x)) {
-      pr <- calcPR(posId(x[[i]][x[[i]] %in% x[[1]]],pos),len,100)
-      lines(pr[2,], pr[1,], type='l', col=cols[i])
-    }
-  }
-  legend(0.8, ylim/2, legend=names(x), col=cols, lty=1, cex=0.8)
-  if (!is.na(file)) dev.off()
-  names(auc) <- names(x)
-  auc
-}
-
-mergeRanks <- function(lis, pos=NULL) {
-  names(lis) <- NULL
-  if (is.null(pos))
-    pos <- unique(unlist(lis))
-  rnk <- lapply(lis, function(x) posId(x, pos))
-  rnk <- unlist(rnk)
-  names(sort(tapply(rnk, names(rnk), sum)))
-}
-
 plotRank <- function(x, pos, title="", file=NA, perc=1, captions=NULL){
   cols <- colorRampPalette(c('red','blue','green'))(length(x))
   len <- length(x[[1]])
   fx <- posId(x[[1]],pos)
   auc <- rep(0, length(x))
-  if (!is.na(file)) .svg_open(file)
+  if (!is.na(file)) png(file)
   ex <- .ecdf(fx, len)
   plot(ex, verticals = TRUE, do.points = FALSE, col=cols[1], main=title, cex=2, lwd=2)
   L <- round(perc*len)
@@ -471,40 +334,10 @@ plotRank <- function(x, pos, title="", file=NA, perc=1, captions=NULL){
   auc
 }
 
-rankTable <- function(id, x) {
-  i <- which(id %in% x)
-  names(i) <- id[i]
-  i
-}
-
 writeRank <- function(id, id2, prefix, header=c("PromEnh","PromOnly")) {
   x <- cbind(id,id2)
   colnames(x) <- header
   write.csv(x, paste0(prefix,"rank.csv"), quote=FALSE, row.names=FALSE)
-}
-
-.relu <- function (x, x0 = 0, dWeight=1e-7) {
-  x0 <- round(x0)
-  i <- which(x<=x0)
-  x[i] <- runif(length(i), min = dWeight, max = dWeight*1.1)
-  x[x>x0] <- seq_len(length(x)-x0)
-  x
-}
-
-.sigmoid <- function (x, k = 1, x0 = 0) {
-  1/(1 + exp(-k * (x - x0)))
-}
-
-.pexp <- function (x, rate) {
-  pexp(x, rate, lower.tail = TRUE, log.p = FALSE)
-}
-
-.logit <- function(x) {
-  d <- log(x/(length(x) - x))
-  d <- as.numeric(scale(d, center = min(d[is.finite(d)]), scale = max(d[is.finite(d)])-min(d[is.finite(d)])))
-  d[is.infinite(d) & d>0] <- 1
-  d[is.infinite(d) & d<0] <- 0
-  d
 }
 
 .lw <- function (x) length(which(x))
@@ -526,165 +359,12 @@ writeRank <- function(id, id2, prefix, header=c("PromEnh","PromOnly")) {
   runif(len, min = x, max = x*2)
 }
 
-plotRankFun <- function(n, fun = c("identity", "relu", "sigmoid", "exp", "pexp", "logit")){
-  if (fun == "relu")
-    dt <- .relu(seq_len(n), n*0.5)
-  else if (fun == "sigmoid")
-    dt <- .sigmoid(seq_len(n), 10/n, n*0.5) * n
-  else if (fun == "logit")
-    dt <- .logit(seq_len(n)) * n
-  else if (fun == "pexp")
-    dt <- .pexp(seq_len(n), 5/n) * n
-  else if (fun == "exp")
-    dt <- 1.0715^seq(100/n,100,100/n)*n/1000
-  else
-    dt <- seq_len(n)
-  plot(dt, main=fun, xlab='x', ylab='f(x)')
-}
-
-mergeList <- function(lis){
-  id <- c()
-  for(i in seq_len(length(lis))) {
-    id <- c(id, names(lis[[i]]))
-  }
-  tid<- table(id)
-  id <- names(tid[tid==length(lis)])
-  res<- cbind(id,data.frame(matrix(unlist(lapply(lis, function(x) {
-    x[match(id, names(x))]
-  })), ncol=length(lis), byrow=FALSE)))
-  names(res) <- c('id',paste0('pval',seq_len(length(lis))))
-  res
-}
-
 .minNonZero <- function(x) {
   x[x==0] <- min(x[x>0])
   x
 }
 
-.rmSigns <- function(x, sign, dMin) {
-  if (sign=="pos")
-    x[x<0] <- .smallPositiveNum(length(which(x<0)), dMin)
-  else if (sign=="neg")
-    x[x>0] <- .smallPositiveNum(length(which(x>0)), dMin)
-  abs(x)
-}
-
-logTransformList <- function(df, fdr=NULL){
-  for(i in 2:length(df)){
-    df[,i] <- .minNonZero(df[,i])
-    if(is.null(fdr)){
-      df[,i] <- log2((1-df[,i])/df[,i])
-    }else{
-      if (fdr >0.5 | fdr<=0){
-        stop("The funciton requires that the given df[,i] threshold falling into (0, 0.5].\n")
-      }else{
-        df[,i] <- log2((1-df[,i])/df[,i]) - log2((1-fdr)/fdr)
-      }
-    }
-  }
-  df
-}
-pageRank.fun <- function(pcs, x, promId=NULL, dWeight=1e-7, damping = 0.85, fun = NULL, maxTry=10, gene.id=TRUE){
-  #fun = match.arg(fun)
-  id <- as.character(pcs[,'id'])
-  bWeights <- ifelse(is.null(dWeight), FALSE, TRUE)
-  if (is.null(promId))
-    promId <- getId(id, type="promoter")
-  if (!all(promId %in% id))
-    stop("Promoter IDs should be a subset of input IDs.")
-  if (class(x)=="character")
-    x <- read.table(x, stringsAsFactors = FALSE)
-  if (class(x)=="data.frame") {
-    x <- x[x[,1] %in% id & x[,2] %in% id,]
-    colnames(x) <- c("a","b")
-    #x <- x[with(x, ave(a,a,FUN=length))<maxCont, ]
-    promId <- promId[!(promId %in% c(x[,1],x[,2]))]
-    ## add a dummy node 0 and unappeared gene id into network and assign weights for edges start with 0 small values
-    if (bWeights) {
-      d <- rep(0,length(promId))
-      d1<- .smallPositiveNum(length(promId), dWeight)
-      if (ncol(x)==2) {
-	w <- c(rep(1,nrow(x)) - .smallPositiveNum(nrow(x), dWeight),d1)
-      } else if (ncol(x)==3) {
-	w <- c(x[,3],d1)
-	w[which(w==0)] = .smallPositiveNum(length(which(w==0)), dWeight)
-      }
-      x <- if (length(promId) > 0)
-	rbind(x[,1:2], data.frame(a=factor(d),b=promId))
-      else
-        x[,1:2]
-      if (max(w) > 1)
-	w <- w/max(w)
-    }
-    g <- graph_from_data_frame(x, directed=TRUE)
-  } else if (class(x)=="igraph") {
-    g <- x
-    bWeights <- FALSE
-  }
-  #g <- simplify(g)
-  decreasing <- if (length(grep('PC\\d+',names(pcs), ignore.case = TRUE))>0)
-    FALSE
-  else if (length(grep('pval\\d+',names(pcs), ignore.case = TRUE))>0)
-    TRUE
-  else
-    stop("The input names must contain PC or pval to indicate the data type.")
-  pcd <- if (!decreasing)
-    grep('PCx|PC\\d+',names(pcs), ignore.case = TRUE)
-  else
-    grep('pvalx|pval\\d+',names(pcs), ignore.case = TRUE)
-  vs <- vector(mode = "list", length = length(pcd))
-  names(vs) <- names(pcs)[pcd]
-  for(pc in pcd) {
-  wt <- if (!decreasing)
-    abs(pcs[,pc])
-  else
-    -log2(pcs[,pc]+1e-10)
-  id <- id[order(wt,decreasing=decreasing)]
-  ix <- id %in% V(g)$name
-  id <- id[ix]
-  id <- c('0',id)
-  vr <- match(V(g)$name, id)
-  vr[is.na(vr)] <- 1
-  nId <-length(id)
-  if (is.null(fun))
-    dt <- c(dWeight, sort(wt, decreasing = decreasing)[ix])
-  else if (fun == "relu")
-    dt <- .relu(seq_len(nId), nId*0.5, 1e-7)
-  else if (fun == "sigmoid")
-    dt <- .sigmoid(seq_len(nId), 10/nId, nId*0.5) * nId
-  else if (fun == "logit")
-    dt <- .logit(seq_len(nId)) * nId
-  else if (fun == "exp")
-    dt <- 1.0715^seq(100/nId,100,100/nId)*nId/1000
-  else if (fun == "pexp")
-    dt <- .pexp(seq_len(nId), 5/nId) * nId
-  else if (fun == "identity")
-    dt <- seq_len(nId)
-  else
-    dt <- c(dWeight, sort(wt, decreasing = decreasing)[ix])
-  dt[dt==0] <- dWeight
-  try <- 0
-  while(TRUE){
-  if (bWeights)
-    v <- try(page_rank(g, algo="arpack", personalized=dt[vr], weights=w, damping = damping))
-  else
-    v <- try(page_rank(g, algo="arpack", personalized=dt[vr], damping = damping))
-  try <- try + 1
-  if(class(v) != "try-error" | try>maxTry) break
-  w[which.min(w)] <- .smallPositiveNum(1)
-  }
-  v <- v$vector
-  v <- v[order(v, decreasing = TRUE)]
-  vs[[names(pcs)[pc]]] <- if (gene.id)
-    getId(names(v), type="gene")
-  else
-    v
-  }
-  vs
-}
-
-pageRank <- function(pcs, x, damping = 0.85, dWeight=1e-100, fun = NULL, pc.sign = c("all","pos","neg"), maxTry=10, gene.id=TRUE, rewire=FALSE, statLog=NULL){
-  pc.sign = match.arg(pc.sign)
+pageRank <- function(pcs, x, damping = 0.85, dWeight=1e-99, fun = NULL, maxTry=10, gene.id=TRUE, rewire=FALSE, statLog=NULL){
   id <- as.character(pcs[,'id'])
   promId <- getId(id, type="promoter")
   if (!all(promId %in% id))
@@ -701,7 +381,7 @@ pageRank <- function(pcs, x, damping = 0.85, dWeight=1e-100, fun = NULL, pc.sign
     d <- rep(0,length(promId))
     d1<- .smallPositiveNum(length(promId), dWeight)
     w <- c(x[,3],d1)
-    w[which(w==0)] = .smallPositiveNum(length(which(w==0)), dWeight)
+    w[which(w==0)] = .smallPositiveNum(.lw(w==0), dWeight)
     x <- rbind(x[,1:2], data.frame(a=factor(d),b=promId))
     if (max(w) > 1)
       w <- w/max(w)
@@ -718,7 +398,7 @@ pageRank <- function(pcs, x, damping = 0.85, dWeight=1e-100, fun = NULL, pc.sign
   vs <- vector(mode = "list", length = length(pcd))
   names(vs) <- names(pcs)[pcd]
   for(pc in pcd) {
-  wt <- .rmSigns(pcs[,pc], pc.sign, dWeight)
+  wt <- abs(pcs[,pc])
   id <- id[order(wt, decreasing = FALSE)]
   ix <- id %in% V(g)$name
   id <- id[ix]
@@ -794,13 +474,6 @@ writeJSONArray <- function(data, file){
   '"]'),file=file)
 }
 
-color2 <- function(n=16) {
-  c(colorpanel(n,'black','blue'),
-  colorpanel(n,'blue','green')[-1],
-  colorpanel(n,'green','yellow')[-1],
-  colorpanel(n,'yellow','red')[-1])
-}
-
 writeData <- function(data, groupLabels, prefix, n=61, name=NULL, intTemp=FALSE){
   filename <- prefix
   data <- order2(data)
@@ -849,32 +522,7 @@ makeBedWins <- function(bed, width=2000) {
   unlist(tile(makeGRangesFromDataFrame(df), width=width))
 }
 
-dTest <- function(meta, data, id, type="original") {
-  lapply(seq_len(max(meta$dataset)), function(i) {
-    b1 <- meta$dataset==i & meta$group==1
-    b2 <- meta$dataset==i & meta$group==2
-    rk <- if (any(b1) & any(b2))
-    apply(data, 1, function(x) {
-      x1 <- mean(x[b1])
-      x2 <- mean(x[b2])
-      if (x1 <= 0)
-	x2
-      else if (x2 <= 0)
-	x1
-      else if (x1 > x2)
-	x1 / x2
-      else
-	x2 / x1
-    })
-    else
-      0
-    getId(id[order(rk, decreasing = TRUE)], type=type)
-  })
-}
-
-.any <- function(x, n){
-  length(which(x))>=n
-}
+.any <- function(x, n) .lw(x)>=n
 
 dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, transform=NULL, normlen=NULL, minlen=50, lambda=0.15, fun=function(x) sqrt(mean(x^2)), datasetLabels=NULL, groupLabels=NULL, qnormalize=TRUE, qnormalizeFirst=FALSE, normalize=FALSE, verbose=FALSE, interactive=FALSE, useSVD=FALSE, saveFile=FALSE, processedData=TRUE, removeLowCoverageChIPseq=TRUE, removeLowCoverageChIPseqProbs=0.1, dPCsigns=NULL, nPaired=0, nTransform=0, nColMeanCent=0, nColStand=0, nMColMeanCent=1, nMColStand=0, dSNRCut=5, nUsedPCAZ=0, nUseRB=0, dPeakFDRCut=0.5) {
   #if (class(bed)=="data.frame")
@@ -911,7 +559,7 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
   repNum <- matrix(unlist(lapply(condId, function(i){
     x <- datasetId[groupId==i]
     unlist(lapply(unique(x), function(j){
-      length(which(x==j))
+      .lw(x==j)
     }))
   })),nrow=nGroupNum, byrow=TRUE)
   if (is.null(datasetLabels)) {
@@ -954,7 +602,6 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
   }
   if (verbose) {
     boxplot(data)
-#   .interactive(interactive)
   }
   if (removeLowCoverageChIPseq) {
     med <- min(data)
@@ -984,16 +631,6 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
   pcc <- paste0("PC",seq_len(nDatasetNum))
   colnames(pc) <- pcc
   bed <- cbind(bed, pc)
-# if (verbose) {
-#   plotD(d$Dobs)
-#   .interactive(interactive)
-#   for(id in seq_len(nDatasetNum)) {
-#     for(pci in pcc) {
-#       plotData(data, pc[,pci], meta, id, groups, title=paste(datasetLabels[id],pci,sep="_"), xlab=groupLabels[1], ylab=groupLabels[2], saveFile=saveFile)
-#       .interactive(interactive)
-#     }
-#   }
-# }
   if (!is.null(dPCsigns))
     pc <- t(t(pc)*dPCsigns)
   bed$PCx <- apply(pc,1,fun)
@@ -1004,13 +641,6 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
 
 order2 <- function(bed) do.call("rbind",lapply(split(bed,bed[,1]), function(x) x[order(x[,2]),]))
 
-mergePCs <- function(res, fun) {
-  pc <- res$gr[,grepl('^PC',colnames(res$gr))]
-  res$gr$PCx <- apply(pc,1,fun)
-  res$gr <- res$gr[order(res$gr$PCx, decreasing=TRUE),]
-  res
-}
-
 .boxcoxTrans <- function(x, lam) {
   if (lam > 0)
     (x^lam - 1)/lam
@@ -1018,70 +648,10 @@ mergePCs <- function(res, fun) {
     log(x)
 }
 
-.zeroFill <- function(x, len, pos) {
-  if (length(x) < len) {
-    if (pos == 1)
-      c(rep(0,len-length(x)), x)
-    else
-      c(x, rep(0,len-length(x)))
-  } else {
-    x[sort(order(abs(x),decreasing=TRUE)[seq_len(len)])]
-  }
-}
-
-.extendBED <- function(df, len) {
-  df <- data.frame(seqnames=c(df[,1],df[,1]), start=c(max(1, df[,'start']-len), df[,'end']+1), end=c(max(1, df[,'start']-1), df[,'end']+len))
-  makeGRangesFromDataFrame(df)
-}
-
 .findOverlapIndex <- function(gr1, gr2) {
   df <- as.data.frame(findOverlaps(gr1, gr2))
   df <- split(df, df[,1])
   lapply(df, function(x) x[,2])
-}
-
-getAdjGenes <- function(gr, genes, n=10, d=1000000, pc="PC1", verbose=TRUE) {
-  gr <- order2(gr)
-  gr <- gr[isEnh(gr$id) | (gr$id %in% paste0(genes,"_1")),]
-  gr1<- makeGRangesFromDataFrame(gr)
-  id <- which(gr$id %in% paste0(genes,"_1"))
-  df <- t(matrix(unlist(sapply(id, function(i) {
-    gr2 <- .extendBED(gr[i,],d)
-    idx <- .findOverlapIndex(gr2, gr1)
-    unlist(lapply(c("1","2"), function(j) {
-      if (j %in% names(idx))
-        .zeroFill(gr[idx[[j]],pc], n, j)
-      else
-        rep(0, n)
-    }))
-  })),nrow=2*n))
-  rownames(df) <- gsub("_1","",gr$id[id])
-  cl <- rep("",2*n)
-  cl[n+1] <- "P" 
-  if (verbose)
-    heatmap.2(df,Colv=F,col=colorpanel(20,'blue','white','red'),trace="none",labCol=cl)
-  df
-}
-
-getDatesetDiff <- function(gr, mark) {
-  df <- gr[,grep(mark, names(gr))]
-  df1 <- df[,grep("^1-", names(df))]
-  df2 <- df[,grep("^2-", names(df))]
-  rowMeans(df1) - rowMeans(df2)
-}
-
-getPC <- function(gr, pc="PC1") {
-    if (is.numeric(pc)) pc <- paste0("PC",pc)
-    v <- gr[,pc]
-    names(v) <- gr$id
-    v <- v[!isEnh(names(v))]
-    names(v) <- gsub("_\\d+", "", names(v))
-    v
-}
-
-getGRLength <- function(gr) {
-    v <- abs(gr$end-gr$start)+1
-    v[isEnh(gr$id)]
 }
 
 getRank <- function(orderedId, genes, orderby=c("rank","name")) {
