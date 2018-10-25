@@ -7,7 +7,5 @@ Description: R interface to interactive epigenetic analysis.
 License: MIT
 LazyData: TRUE
 LinkingTo: Rcpp
-Depends: R (>= 3.0.0), GenomicRanges, igraph, stringr
-#: , enrichR
-Imports: S4Vectors, XVector, GenomeInfoDb, IRanges, GenomicRanges, Rcpp, parallel, stringr
-#: , preprocessCore, enrichR
+Depends: R (>= 3.1.0), GenomicRanges, igraph, stringr, enrichR
+Imports: S4Vectors, XVector, GenomeInfoDb, IRanges, GenomicRanges, Rcpp, parallel, stringr, preprocessCore, enrichR
