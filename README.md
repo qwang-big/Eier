@@ -111,16 +111,16 @@ We only took the regions which are more likely to be true enhancers, therefore w
 ```r
 i <- filterPeak(c("E003-H3K4me1.narrowPeak","E006-H3K4me1.narrowPeak"), bed, group=c(1,2))
 ```
- <a id="precompiled">**Precompiled R data files in our test cases (see following) contain all the above mentioned objects (meta, bed, data, i) for the following tests**.
+ <a id="precompiled">**Precompiled R data files in our test cases (see following) contain all the above mentioned objects (_meta, bed, data, i_) for the following tests**.
 
 | Cancer / primary cells | Controls |
 |------------------------|----------|
 | Chronic Lymphocytic Leukemia ([CLL](https://github.com/qwang-big/crl-data/blob/master/CLL.hg19.rda)) | Naive B cell |
-| Acute Lymphoblastic Leukaemia ([ALL](https://github.com/qwang-big/crl-data/blob/master/ALL.hg19.rda)) | Naive B cell |
-| Acute Myeloid Leukaemia ([nkAML](https://github.com/qwang-big/crl-data/blob/master/nkAML.hg19.rda)) | Naive B cell |
-| Multiple Myeloma ([MM](https://github.com/qwang-big/crl-data/blob/master/MM.hg19.rda)) | Naive B cell |
-| Mantle Cell Lymphoma ([MCL](https://github.com/qwang-big/crl-data/blob/master/MCL.hg19.rda)) | Naive B cell |
-| Chronic Lymphocytic Leukemia (mutated) ([mCLL](https://github.com/qwang-big/crl-data/blob/master/mCLL.hg19.rda)) | Naive B cell |
+| Acute Lymphoblastic Leukaemia ([ALL](https://github.com/qwang-big/crl-data/blob/master/ALL.hg38.rda)) | Naive B cell |
+| Acute Myeloid Leukaemia ([nkAML](https://github.com/qwang-big/crl-data/blob/master/nkAML.hg38.rda)) | Naive B cell |
+| Multiple Myeloma ([MM](https://github.com/qwang-big/crl-data/blob/master/MM.hg38.rda)) | Naive B cell |
+| Mantle Cell Lymphoma ([MCL](https://github.com/qwang-big/crl-data/blob/master/MCL.hg38.rda)) | Naive B cell |
+| Chronic Lymphocytic Leukemia (mutated) ([mCLL](https://github.com/qwang-big/crl-data/blob/master/mCLL.hg38.rda)) | Naive B cell |
 | Colorectal Cancer ([CRC](https://github.com/qwang-big/crl-data/blob/master/CRC.hg19.rda)) | Sigmoid colon |
 | Lower Grade Glioma ([LGG](https://github.com/qwang-big/crl-data/blob/master/GLM.hg19.rda)) | Normal brain |
 | Papillary Thyroid Cancer ([PTC](https://github.com/qwang-big/crl-data/blob/master/PTC.hg19.rda)) | Normal thyroid |
