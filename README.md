@@ -41,7 +41,7 @@ In practice, as TADs between different cell types are relative conserved ([Schmi
 
 ## Epigenetic intensity data
 *Eier* requires user to provide [**BigWig**](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format to represent the sequencing density of BS-Seq or ChIP-Seq. User need to create a **data.frame** to indicate the location of the BigWig files, as well as groups and experiment types (as *dataset* column). 
-<details><summary>*Here is a sample as follows:*</summary>
+<details><summary>*Here is a sample as follows*:</summary>
 
 |    | file                                                                               | group | dataset |
 |----|------------------------------------------------------------------------------------|-------|---------|
