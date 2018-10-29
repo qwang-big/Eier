@@ -81,7 +81,7 @@ In practice, as TADs between different cell types are relative conserved ([Schmi
 | 35 | UCSD.H1.Input.YL262.wig.bw                                                         | 2     | 6       |
 | 36 | UCSD.H1.Input.YL328.wig.bw                                                         | 2     | 6       |
 
-The **BigWig** files for our test cases were converted from wig files retrieved from [NIH Roadmap Epigenomics Project data gateway](https://www.ncbi.nlm.nih.gov/geo/roadmap/epigenomics/), BLUEPRINT, and [CEEHRC](http://www.epigenomes.ca/), respectively.  Precompiled R objects in our test cases can be retrieved from  
+The **BigWig** files for our test cases were converted from wig files retrieved from [NIH Roadmap Epigenomics Project data gateway](https://www.ncbi.nlm.nih.gov/geo/roadmap/epigenomics/), BLUEPRINT, and [CEEHRC](http://www.epigenomes.ca/), respectively.  Precompiled R objects in our test cases can be retrieved from [here](#precompiled) 
 
 # Usage
 ## R environment for the test cases.
@@ -108,7 +108,7 @@ We only took the regions which are more likely to be true enhancers, therefore w
 ```r
 i <- filterPeak(c("E003-H3K4me1.narrowPeak","E006-H3K4me1.narrowPeak"), bed, group=c(1,2))
 ```
-**Precompiled R data files in our test cases (see following) contain all the above mentioned objects (meta, bed, data, i) for the following tests. **
+### Precompiled R data files in our test cases (see following) contain all the above mentioned objects (meta, bed, data, i) for the following tests.
 
 | Cancer / primary cells | Controls |
 |------------------------|----------|
@@ -126,7 +126,7 @@ i <- filterPeak(c("E003-H3K4me1.narrowPeak","E006-H3K4me1.narrowPeak"), bed, gro
 | Trophoblast Stem Cells ([TSC](https://github.com/qwang-big/crl-data/blob/master/TSC.hg19.rda)) | Embryonic Stem Cells |
 | H1 BMP4 derived Mesendoderm ([MES](https://github.com/qwang-big/crl-data/blob/master/MES.hg19.rda)) | Embryonic Stem Cells |
 
-** For CLL test case, one can simply load necessary dataset with: **
+### For CLL test case, one can simply load necessary dataset with: 
 ```r
 data(CLL)
 ```
