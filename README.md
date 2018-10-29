@@ -31,19 +31,13 @@ Given that the enhancers from GeneHancer database are an ensemble of all tissues
 
 ## Promoter-enhancer (P-E) interactions
 Enhancer within 1Mb distance to the TSS are considered potential interating region. In a common sense, the interactions should not cross the topologically associating domains (TAD) boundary. Therefore, we compiled a cell-type specific enhancer-promoter interaction list by excluding the interactions not within the same TAD from [GSE87112](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE87112). Enhancer-promoter interactions probability are estimated using a power-law decay function based on the distances to the TSS. Enhancer-promoter distances for sample tissues can be downloaded from [https://github.com/qwang-big/crl-data/PEdistances](https://github.com/qwang-big/crl-data/tree/master/PEdistances), including:
- - [H1](https://github.com/qwang-big/crl-data/blob/master/PEdistances/H1.hg19.pair.gz?raw=true): H1 human embryonic stem cell line
- - [MES](https://github.com/qwang-big/crl-data/blob/master/PEdistances/MES.hg19.pair.gz?raw=true): H1 BMP4 derived mesendoderm cultured cells
- - [MSC](https://github.com/qwang-big/crl-data/blob/master/PEdistances/MSC.hg19.pair.gz?raw=true): H1 derived mesenchymal stem cells
- - [NPC](https://github.com/qwang-big/crl-data/blob/master/PEdistances/NPC.hg19.pair.gz?raw=true): H1 derived neural precursor cells
- - [TPC](https://github.com/qwang-big/crl-data/blob/master/PEdistances/TPC.hg19.pair.gz?raw=true): H1 derived trophoblast stem cells
+ - [H1](https://github.com/qwang-big/crl-data/blob/master/PEdistances/H1.hg19.pair.gz): H1 human embryonic stem cell line
+ - [MES](https://github.com/qwang-big/crl-data/blob/master/PEdistances/MES.hg19.pair.gz): H1 BMP4 derived mesendoderm cultured cells
+ - [MSC](https://github.com/qwang-big/crl-data/blob/master/PEdistances/MSC.hg19.pair.gz): H1 derived mesenchymal stem cells
+ - [NPC](https://github.com/qwang-big/crl-data/blob/master/PEdistances/NPC.hg19.pair.gz): H1 derived neural precursor cells
+ - [TPC](https://github.com/qwang-big/crl-data/blob/master/PEdistances/TPC.hg19.pair.gz): H1 derived trophoblast stem cells
 
 In practice, as TADs between different cell types are relative conserved ([Schmitt AD, 2016](#schmitt-ad-2016)), one can use the H1 cell line in case the TAD of corresponding cell type is not available. 
-
-First Tab:
-```sh
-$ node app
-```
-
 
 ## Epigenetic intensity data
 *Eier* requires user to provide [**BigWig**](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format to represent the sequencing density of BS-Seq or ChIP-Seq. User need to create a **data.frame** to indicate the location of the BigWig files, as well as groups and experiment types (as *dataset* column). Here is a sample as follows:
@@ -99,7 +93,7 @@ options(stringsAsFactors = FALSE)
 ## Load pre-defined regions
 The pre-defined promoters and enhancers regions with corresponding IDs (precompiled [hg19](https://github.com/qwang-big/crl-data/blob/master/promenh.hg19.bed), [hg38](https://github.com/qwang-big/crl-data/blob/master/promenh.hg38.bed)) need to be loaded first with: 
 ```r
-bed <- read.table('promenh.hg19.bed')
+bed <- read.table('https://raw.githubusercontent.com/qwang-big/crl-data/master/promenh.hg19.bed')
 ```
 
 ## Import sequencing density data from BigWig files
@@ -107,19 +101,49 @@ Read in the table containing file location, group, dataset information as a **da
 ```r
 data <- importBW(meta, bed)
 ```
-to import the density for each regions. *ImportBW* use an external C function from [libBigWig](), which was compiled with GNU gcc and linked with a static C library during *Eier* installation on Linux.  For Windows/Mac OS users, you need to create your platform specific static library (**libBigWig.a**, under *src/libBigWig*) by your own. The output is equivalent to using *bigWigAverageOverBed* if BigWig files were processed separately, which can be loaded with another procedure instead. 
+to import the density for each regions. *ImportBW* use an external C function from [libBigWig](https://github.com/dpryan79/libBigWig), which is compiled with *Eier* during installation. Its output is equivalent to using *bigWigAverageOverBed* if BigWig files were processed separately, which can be loaded with another procedure instead. 
 
 ## Filter out unspecific enhancers
 We only took the regions which are more likely to be true enhancers, therefore we use the following function to get the indices which overlapped with enhancer histone marks (H3K4me1 in the following case). The peaks identified by Roadmap Epigenetics Project were retrieved from [http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated](http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated), and run:
 ```r
 i <- filterPeak(c("E003-H3K4me1.narrowPeak","E006-H3K4me1.narrowPeak"), bed, group=c(1,2))
 ```
-**Precompiled R data files in our test cases () contain all the above mentioned objects (meta, bed, data, i) for the following tests. **
+**Precompiled R data files in our test cases (see following) contain all the above mentioned objects (meta, bed, data, i) for the following tests. **
+| Cancer / primary cells | Controls |
+|------------------------|----------|
+| Chronic Lymphocytic Leukemia ([CLL](https://github.com/qwang-big/crl-data/blob/master/CLL.hg19.rda)) | Naive B cell |
+| Acute Lymphoblastic Leukaemia ([ALL](https://github.com/qwang-big/crl-data/blob/master/ALL.hg19.rda)) | Naive B cell |
+| Acute Myeloid Leukaemia ([nkAML](https://github.com/qwang-big/crl-data/blob/master/nkAML.hg19.rda)) | Naive B cell |
+| Multiple Myeloma ([MM](https://github.com/qwang-big/crl-data/blob/master/MM.hg19.rda)) | Naive B cell |
+| Mantle Cell Lymphoma ([MCL](https://github.com/qwang-big/crl-data/blob/master/MCL.hg19.rda)) | Naive B cell |
+| Chronic Lymphocytic Leukemia (mutated) ([mCLL](https://github.com/qwang-big/crl-data/blob/master/mCLL.hg19.rda)) | Naive B cell |
+| Colorectal Cancer ([CRC](https://github.com/qwang-big/crl-data/blob/master/CRC.hg19.rda)) | Sigmoid colon |
+| Lower Grade Glioma ([LGG](https://github.com/qwang-big/crl-data/blob/master/GLM.hg19.rda)) | Normal brain |
+| Papillary Thyroid Cancer ([PTC](https://github.com/qwang-big/crl-data/blob/master/PTC.hg19.rda)) | Normal thyroid |
+| Mesenchymal Stem Cells ([MSC](https://github.com/qwang-big/crl-data/blob/master/MSC.hg19.rda)) | Embryonic Stem Cells |
+| Neural Progenitor Cells ([NPC](https://github.com/qwang-big/crl-data/blob/master/NPC.hg19.rda)) | Embryonic Stem Cells |
+| Trophoblast Stem Cells ([TSC](https://github.com/qwang-big/crl-data/blob/master/TSC.hg19.rda)) | Embryonic Stem Cells |
+| H1 BMP4 derived Mesendoderm ([MES](https://github.com/qwang-big/crl-data/blob/master/MES.hg19.rda)) | Embryonic Stem Cells |
+
+** For CLL test case, one can simply load necessary dataset with: **
+```r
+data(CLL)
+```
 
 ## Measure combinatorial effect of epigenetic alterations
-We use [dPCA](http://www.biostat.jhsph.edu/~hji/dpca/) to measure combinatorial effect of epigenetic alterations. The software is already integrated into *Eier* as an external C function, which was compiled with GNU gcc and linked with a static C library during *Eier* installation on Linux.  For Windows/Mac OS users, you need to create your platform specific static library (**libdpca.a**, under *src/dpca*) by your own. 
+We use [dPCA](http://www.biostat.jhsph.edu/~hji/dpca/) to measure combinatorial effect of epigenetic alterations. The software is already integrated into *Eier* as an external C function. User can select a subset of datasets to study, for the CLL test case:
 ```r
-res <- dPCA(meta, bed[i,], data[i,], datasets=1:3, transform=1:3, normlen=1:3, verbose=TRUE)
+j <- c(1,2,6,8)
+```
+
+Use the following command to read the data which were indexed with *i*: 
+```r
+res <- dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=TRUE)
+```
+
+or the following if all the genomic regions are to be tested.
+```r
+res <- dPCA(meta, bed, data, datasets=j, transform=j, normlen=j, verbose=TRUE)
 ```
 
 The output *res* is a named list which has three keys: *gr*, *Dobs*, and *proj*.
@@ -149,7 +173,7 @@ Use the following function to convert the promoter-enhancer interactions in a gi
 
 * Load P-E interactions in H1ESC cell lines, the three columns in *H1* data.frame are enhancer IDs, promoter IDs, P-E distances, respectively. 
 ```r
-H1 <- read.table('H1.hg19.pair')
+H1 <- read.table('https://raw.githubusercontent.com/qwang-big/crl-data/master/PEdistances/H1.hg19.pair')
 ```
 
 * Transform the P-E interactions from bp to Mb:
@@ -215,7 +239,7 @@ The results presented here are in part based upon data generated by The Canadian
 
 # References
 ## Schmitt AD, 2016
-Schmitt AD, Hu M, Jung I, et al. A Compendium of Chromatin Contact Maps Reveals Spatially Active Regions in the Human Genome. Cell Reports. 2016;17(8):2042–2059.
+ <a id="schmitt-ad-2016"></a> Schmitt AD, Hu M, Jung I, et al. A Compendium of Chromatin Contact Maps Reveals Spatially Active Regions in the Human Genome. Cell Reports. 2016;17(8):2042–2059.
 
 # License
 ----
@@ -237,12 +261,12 @@ pander(sessionInfo(), compact = FALSE)
 **Platform:** x86_64-pc-linux-gnu (64-bit) 
 
 **locale:**
-_LC_CTYPE=en_GB.UTF-8_, _LC_NUMERIC=C_, _LC_TIME=en_GB.UTF-8_, _LC_COLLATE=en_GB.UTF-8_, _LC_MONETARY=en_GB.UTF-8_, _LC_MESSAGES=en_GB.UTF-8_, _LC_PAPER=en_GB.UTF-8_, _LC_NAME=C_, _LC_ADDRESS=C_, _LC_TELEPHONE=C_, _LC_MEASUREMENT=en_GB.UTF-8_ and _LC_IDENTIFICATION=C_
+_LC_CTYPE=en_US.UTF-8_, _LC_NUMERIC=C_, _LC_TIME=en_US.UTF-8_, _LC_COLLATE=en_US.UTF-8_, _LC_MONETARY=en_US.UTF-8_, _LC_MESSAGES=en_US.UTF-8_, _LC_PAPER=en_US.UTF-8_, _LC_NAME=C_, _LC_ADDRESS=C_, _LC_TELEPHONE=C_, _LC_MEASUREMENT=en_US.UTF-8_ and _LC_IDENTIFICATION=C_
 
 **attached base packages:** 
 
-* parallel 
 * stats4 
+* parallel 
 * stats 
 * graphics 
 * grDevices 
@@ -254,14 +278,31 @@ _LC_CTYPE=en_GB.UTF-8_, _LC_NUMERIC=C_, _LC_TIME=en_GB.UTF-8_, _LC_COLLATE=en_GB
 
 **other attached packages:** 
 
-* pander(v.0.6.0) 
-* BiSeq(v.1.11.0) 
-* Formula(v.1.2-1) 
-* SummarizedExperiment(v.1.0.1) 
-* Biobase(v.2.30.0) 
+* pander(v.0.6.2) 
+* eier(v.1.0) 
+* enrichR(v.1.0) 
+* stringr(v.1.3.1) 
+* igraph(v.1.2.2) 
 * GenomicRanges(v.1.22.4) 
-* GenomeInfoDb(v.1.6.1) 
+* GenomeInfoDb(v.1.6.3) 
 * IRanges(v.2.4.8) 
 * S4Vectors(v.0.8.11) 
-* BiocGenerics(v.0.16.1) ​
+* BiocGenerics(v.0.16.1) 
+
+
+**loaded via a namespace (and not attached):** 
+
+* Rcpp(v.0.12.5) 
+* digest(v.0.6.15) 
+* R6(v.2.2.2) 
+* magrittr(v.1.5) 
+* httr(v.1.3.1) 
+* stringi(v.1.2.4) 
+* zlibbioc(v.1.16.0) 
+* XVector(v.0.10.0) 
+* preprocessCore(v.1.32.0) 
+* rjson(v.0.2.20) 
+* tools(v.3.2.2) 
+* pkgconfig(v.2.0.2) 
+* tcltk(v.3.2.2) 
 

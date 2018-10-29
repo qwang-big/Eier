@@ -524,7 +524,7 @@ makeBedWins <- function(bed, width=2000) {
 
 .any <- function(x, n) .lw(x)>=n
 
-dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, transform=NULL, normlen=NULL, minlen=50, lambda=0.15, fun=function(x) sqrt(mean(x^2)), datasetLabels=NULL, groupLabels=NULL, qnormalize=TRUE, qnormalizeFirst=FALSE, normalize=FALSE, verbose=FALSE, interactive=FALSE, useSVD=FALSE, saveFile=FALSE, processedData=TRUE, removeLowCoverageChIPseq=TRUE, removeLowCoverageChIPseqProbs=0.1, dPCsigns=NULL, nPaired=0, nTransform=0, nColMeanCent=0, nColStand=0, nMColMeanCent=1, nMColStand=0, dSNRCut=5, nUsedPCAZ=0, nUseRB=0, dPeakFDRCut=0.5) {
+dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, transform=NULL, normlen=NULL, minlen=50, lambda=0.15, fun=function(x) sqrt(mean(x^2)), datasetLabels=NULL, groupLabels=NULL, qnormalize=TRUE, qnormalizeFirst=FALSE, normalize=FALSE, verbose=FALSE, interactive=FALSE, useSVD=FALSE, saveFile=FALSE, processedData=TRUE, removeLowCoverageChIPseq=FALSE, removeLowCoverageChIPseqProbs=0.1, dPCsigns=NULL, nPaired=0, nTransform=0, nColMeanCent=0, nColStand=0, nMColMeanCent=1, nMColStand=0, dSNRCut=5, nUsedPCAZ=0, nUseRB=0, dPeakFDRCut=0.5) {
   #if (class(bed)=="data.frame")
   #  bed = readBED(bed)
   #data = data[match(bed[,4],rownames(data)),]
@@ -587,8 +587,9 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
     qv <- max(1,quantile(data, probs=removeLowCoverageChIPseqProbs))
     qi <- apply(data,1,function(x) .any(x>qv, 2))
   }
-  if (qnormalizeFirst)
+  if (qnormalizeFirst) {
     data <- normalize.quantiles(data)
+  }
   if (!is.null(transform)) {
     wId <- which(meta[,'dataset'] %in% transform)
     tdata <- apply(data,2,function(tmp){
@@ -600,15 +601,16 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
     })
     data[,wId] <- tdata[,wId]
   }
-  if (verbose) {
-    boxplot(data)
-  }
   if (removeLowCoverageChIPseq) {
     med <- min(data)
     data[!qi,] <- runif(ncol(data), med-0.00001, med)
   }
-  if (!qnormalizeFirst & qnormalize)
+  if (!qnormalizeFirst & qnormalize) {
     data <- normalize.quantiles(data)
+  }
+  if (verbose) {
+    boxplot(data)
+  }
   #bed <- as.data.frame(bed)
   nLociNum <- nrow(bed)
   if (useSVD) {
@@ -673,6 +675,6 @@ writeLines(paste0('<!DOCTYPE html><html><head><title>',name,'</title><link rel="
 }
 
 exportApps <- function(name, exdir = ".") {
-	untar(file.path(system.file("data", package="crl"), "html.tar.gz"), exdir = exdir)
+	untar(file.path(system.file("data", package="eier"), "html.tar.gz"), exdir = exdir)
 	writeIndexHtml(name, exdir)
 }

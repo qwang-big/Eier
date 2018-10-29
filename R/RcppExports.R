@@ -2,10 +2,10 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 read_bigwig_impl <- function(bwfname, chrom, start, end) {
-    .Call(crl_read_bigwig_impl, bwfname, chrom, start, end)
+    .Call(eier_read_bigwig_impl, bwfname, chrom, start, end)
 }
 
 dPCA_main_impl <- function(nGroupNum, nDatasetNum, nSampleNum, nPaired, nLociNum, groupId, datasetId, repNum, sampleName, lociChr, lociStart, lociEnd, vdata, nTransform, nColMeanCent, nColStand, nMColMeanCent, nMColStand, dSNRCut, nUsedPCAZ, nUseRB, dPeakFDRCut) {
-    .Call(crl_dPCA_main_impl, nGroupNum, nDatasetNum, nSampleNum, nPaired, nLociNum, groupId, datasetId, repNum, sampleName, lociChr, lociStart, lociEnd, vdata, nTransform, nColMeanCent, nColStand, nMColMeanCent, nMColStand, dSNRCut, nUsedPCAZ, nUseRB, dPeakFDRCut)
+    .Call(eier_dPCA_main_impl, nGroupNum, nDatasetNum, nSampleNum, nPaired, nLociNum, groupId, datasetId, repNum, sampleName, lociChr, lociStart, lociEnd, vdata, nTransform, nColMeanCent, nColStand, nMColMeanCent, nMColStand, dSNRCut, nUsedPCAZ, nUseRB, dPeakFDRCut)
 }
 
