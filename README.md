@@ -40,7 +40,8 @@ Enhancer within 1Mb distance to the TSS are considered potential interating regi
 In practice, as TADs between different cell types are relative conserved ([Schmitt AD, 2016](#schmitt-ad-2016)), one can use the H1 cell line in case the TAD of corresponding cell type is not available. 
 
 ## Epigenetic intensity data
-*Eier* requires user to provide [**BigWig**](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format to represent the sequencing density of BS-Seq or ChIP-Seq. User need to create a **data.frame** to indicate the location of the BigWig files, as well as groups and experiment types (as *dataset* column). Here is a sample as follows:
+*Eier* requires user to provide [**BigWig**](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format to represent the sequencing density of BS-Seq or ChIP-Seq. User need to create a **data.frame** to indicate the location of the BigWig files, as well as groups and experiment types (as *dataset* column). <details><summary>Here</summary> is a sample as follows:
+<p>
 
 |    | file                                                                               | group | dataset |
 |----|------------------------------------------------------------------------------------|-------|---------|
@@ -80,6 +81,8 @@ In practice, as TADs between different cell types are relative conserved ([Schmi
 | 34 | UCSD.H1.Input.YL208.wig.bw                                                         | 2     | 6       |
 | 35 | UCSD.H1.Input.YL262.wig.bw                                                         | 2     | 6       |
 | 36 | UCSD.H1.Input.YL328.wig.bw                                                         | 2     | 6       |
+
+</p></details>
 
 The **BigWig** files for our test cases were converted from wig files retrieved from [NIH Roadmap Epigenomics Project data gateway](https://www.ncbi.nlm.nih.gov/geo/roadmap/epigenomics/), BLUEPRINT, and [CEEHRC](http://www.epigenomes.ca/), respectively.  Precompiled R objects in our test cases can be retrieved from [here](#precompiled) 
 
