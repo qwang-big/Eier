@@ -1,4 +1,4 @@
-Package: eier
+Package: irene
 Type: Package
 Title: R interface to interactive epigenetic analysis
 Version: 1.0

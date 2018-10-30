@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // read_bigwig_impl
 double read_bigwig_impl(std::string bwfname, std::string chrom, int start, int end);
-RcppExport SEXP eier_read_bigwig_impl(SEXP bwfnameSEXP, SEXP chromSEXP, SEXP startSEXP, SEXP endSEXP) {
+RcppExport SEXP irene_read_bigwig_impl(SEXP bwfnameSEXP, SEXP chromSEXP, SEXP startSEXP, SEXP endSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,7 +21,7 @@ END_RCPP
 }
 // dPCA_main_impl
 List dPCA_main_impl(int nGroupNum, int nDatasetNum, int nSampleNum, int nPaired, int nLociNum, IntegerVector groupId, IntegerVector datasetId, NumericMatrix repNum, StringVector sampleName, StringVector lociChr, IntegerVector lociStart, IntegerVector lociEnd, NumericMatrix vdata, int nTransform, int nColMeanCent, int nColStand, int nMColMeanCent, int nMColStand, double dSNRCut, int nUsedPCAZ, int nUseRB, double dPeakFDRCut);
-RcppExport SEXP eier_dPCA_main_impl(SEXP nGroupNumSEXP, SEXP nDatasetNumSEXP, SEXP nSampleNumSEXP, SEXP nPairedSEXP, SEXP nLociNumSEXP, SEXP groupIdSEXP, SEXP datasetIdSEXP, SEXP repNumSEXP, SEXP sampleNameSEXP, SEXP lociChrSEXP, SEXP lociStartSEXP, SEXP lociEndSEXP, SEXP vdataSEXP, SEXP nTransformSEXP, SEXP nColMeanCentSEXP, SEXP nColStandSEXP, SEXP nMColMeanCentSEXP, SEXP nMColStandSEXP, SEXP dSNRCutSEXP, SEXP nUsedPCAZSEXP, SEXP nUseRBSEXP, SEXP dPeakFDRCutSEXP) {
+RcppExport SEXP irene_dPCA_main_impl(SEXP nGroupNumSEXP, SEXP nDatasetNumSEXP, SEXP nSampleNumSEXP, SEXP nPairedSEXP, SEXP nLociNumSEXP, SEXP groupIdSEXP, SEXP datasetIdSEXP, SEXP repNumSEXP, SEXP sampleNameSEXP, SEXP lociChrSEXP, SEXP lociStartSEXP, SEXP lociEndSEXP, SEXP vdataSEXP, SEXP nTransformSEXP, SEXP nColMeanCentSEXP, SEXP nColStandSEXP, SEXP nMColMeanCentSEXP, SEXP nMColStandSEXP, SEXP dSNRCutSEXP, SEXP nUsedPCAZSEXP, SEXP nUseRBSEXP, SEXP dPeakFDRCutSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -53,12 +53,12 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"eier_read_bigwig_impl", (DL_FUNC) &eier_read_bigwig_impl, 4},
-    {"eier_dPCA_main_impl", (DL_FUNC) &eier_dPCA_main_impl, 22},
+    {"irene_read_bigwig_impl", (DL_FUNC) &irene_read_bigwig_impl, 4},
+    {"irene_dPCA_main_impl", (DL_FUNC) &irene_dPCA_main_impl, 22},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_eier(DllInfo *dll) {
+RcppExport void R_init_irene(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }
