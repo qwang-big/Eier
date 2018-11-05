@@ -220,7 +220,7 @@ exportJSONpathways <- function(enriched, file, n=5) {
     n <- min(n, nrow(df))
     s <- paste0(s,'{"pathways": ["',getJSONarray(df,'Term',n),'"],"pvals": ["',getJSONarray(df,'Adjusted.P.value',n),'"],"genes": [["',getJSONgenes(df,n),'"]]},')
   }
-  write(paste0(vJoin(s),']'), file=file)
+  write(paste0(vJoin(s),']'), file=paste0(prefix,"pathways.json"))
 }
 
 getId <- function(id, type = c("gene", "all", "enhancer", "promoter", "original"), replacement=''){
