@@ -1,6 +1,11 @@
 language: r
+cache: packages
+r:
+  - oldrel
+  - release
+  - devel
 
-sudo: required
+#sudo: required
 
 #warnings_are_errors: true
 

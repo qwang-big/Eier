@@ -2,7 +2,7 @@
 
 ![logo](https://raw.githubusercontent.com/qwang-big/irene/master/images/Irene.png)
 
-[![Build Status](https://travis-ci.org/qwang-big/Irene.svg?branch=master)](https://travis-ci.org/qwang-big/Irene)
+[![Build Status](https://travis-ci.org/qwang-big/irene.svg?branch=master)](https://travis-ci.org/qwang-big/irene)
 
 *Irene* is an R package which allows you
   - Find significantly altered genes between two biological conditions from histone ChIP-Seq and DNA methylation tracks (BigWig)

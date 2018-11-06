@@ -4,7 +4,7 @@ Title: R interface to interactive epigenetic analysis
 Version: 1.0
 Date: 2018-11-10
 Author: Qi Wang<qwang.big@gmail.com>, Carl Herrmann<carl.herrmann@uni-heidelberg.de>
-Maintainer: Qi Wang<qwang.big@gmail.com>
+Maintainer: Qi Wang
 Description: R interface to interactive epigenetic analysis.
 URL: https://github.com/qwang-big/irene
 License: MIT
