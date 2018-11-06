@@ -7,14 +7,14 @@
 *Irene* is an R package which allows you
   - Find significantly altered genes between two biological conditions from histone ChIP-Seq and DNA methylation tracks (BigWig)
   - Focus on the genes which are associated with more extensive epigenetic modification over targetting enhancers.
-  - Annotate and visulise the global epigenetic variances with network anlaysis.
+  - Annotate and visualize the global epigenetic variances with network analysis.
 
 # INTRODUCTION
 *Irene* is developed for two purposes in epigenetic ranking:
   - Integrate several epigenetic marks
   - Incorporate enhancers
 
-The whole idea has been demostrated in the Chapter III of Qi Wang's [disseration](https://github.com/qwang-big/irene-web/blob/master/docs/chapter3.pdf). For the above purposes, we employed singular value decomposition [dPCA](http://www.biostat.jhsph.edu/~hji/dpca/) and random walk ranking [PageRank](http://igraph.org/r/doc/page_rank.html). The epigenetic alterations over genomic regulatory elements between two groups are presented as dPC scores and further to PageRank scores during solving the enhancer-promoter relationships. To begin with, *Irene* starts from the following data inputs. 
+The whole idea has been demonstrated in the Chapter III of Qi Wang's [dissertation](https://github.com/qwang-big/irene-web/blob/master/docs/chapter3.pdf). For the above purposes, we employed singular value decomposition [dPCA](http://www.biostat.jhsph.edu/~hji/dpca/) and random walk ranking [PageRank](http://igraph.org/r/doc/page_rank.html). The epigenetic alterations over genomic regulatory elements between two groups are presented as dPC scores and further to PageRank scores during solving the enhancer-promoter relationships. To begin with, *Irene* starts from the following data inputs. 
 
 # Installation
 *Irene* can be installed directly from GitHub with the help of *devtools* package:
@@ -30,7 +30,7 @@ User need to provide promoters and enhancers regions so that comparisons for dif
 Given that the enhancers from GeneHancer database are an ensemble of all tissues/cell types, one may need to filter out the unspecific ones by overlapping with the enhancer-specific histone marks, e.g., histone H3 lysine 4 monomethylation (H3K4me1) or the H3K27 acetylation (H3K27ac) marks. 
 
 ## Promoter-enhancer (P-E) interactions
-Enhancer within 1Mb distance to the TSS are considered potential interating region. In a common sense, the interactions should not cross the topologically associating domains (TAD) boundary. Therefore, we compiled a cell-type specific enhancer-promoter interaction list by excluding the interactions not within the same TAD from [GSE87112](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE87112). Enhancer-promoter interactions probability are estimated using a power-law decay function based on the distances to the TSS. Enhancer-promoter distances for sample tissues can be downloaded from [https://github.com/qwang-big/irene-data/PEdistances](https://github.com/qwang-big/irene-data/tree/master/PEdistances), including:
+Enhancer within 1Mb distance to the TSS are considered potential interacting region. In a common sense, the interactions should not cross the topologically associating domains (TAD) boundary. Therefore, we compiled a cell-type specific enhancer-promoter interaction list by excluding the interactions not within the same TAD from [GSE87112](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE87112). Enhancer-promoter interactions probability are estimated using a power-law decay function based on the distances to the TSS. Enhancer-promoter distances for sample tissues can be downloaded from [https://github.com/qwang-big/irene-data/PEdistances](https://github.com/qwang-big/irene-data/tree/master/PEdistances), including:
  - [H1](https://github.com/qwang-big/irene-data/blob/master/PEdistances/H1.hg19.pair.gz): H1 human embryonic stem cell line
  - [MES](https://github.com/qwang-big/irene-data/blob/master/PEdistances/MES.hg19.pair.gz): H1 BMP4 derived mesendoderm cultured cells
  - [MSC](https://github.com/qwang-big/irene-data/blob/master/PEdistances/MSC.hg19.pair.gz): H1 derived mesenchymal stem cells
@@ -43,7 +43,7 @@ In practice, as TADs between different cell types are relative conserved ([Schmi
 *Irene* requires user to provide [**BigWig**](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format to represent the sequencing density of BS-Seq or ChIP-Seq. User need to create a **data.frame** to indicate the location of the BigWig files, as well as groups and experiment types (as *dataset* column). 
 <details><summary>Here is a sample as follows:</summary>
 
-|    | file                                                                               | group | dataset |
+|    | file                                                                                          | group | dataset |
 |----|------------------------------------------------------------------------------------|-------|---------|
 | 1  | UCSD.H1_Derived_Mesenchymal_Stem_Cells.Bisulfite-Seq.methylC-seq_h1-msc_r1a.wig.bw | 1     | 1       |
 | 2  | UCSD.H1_Derived_Mesenchymal_Stem_Cells.Bisulfite-Seq.methylC-seq_h1-msc_r2a.wig.bw | 1     | 1       |
@@ -104,7 +104,7 @@ Read in the table containing file location, group, dataset information as a **da
 ```r
 data <- importBW(meta, bed)
 ```
-to import the density for each regions. *ImportBW* use an external C function from [libBigWig](https://github.com/dpryan79/libBigWig), which is compiled with *Irene* during installation. Its output is equivalent to using *bigWigAverageOverBed* if BigWig files were processed separately, which can be loaded with another procedure instead. 
+to import the density for each regions. *ImportBW* use an external C function from [libBigWig](https://github.com/dpryan79/libBigWig), which is compiled with *Irene* during installation. Its output is equivalent to using *bigWigAverageOverBed* if BigWig files were processed separately, which can be loaded with another [procedure](#bigwigaverageoverbed) instead. 
 
 ## Filter out unspecific enhancers
 We only took the regions which are more likely to be true enhancers, therefore we use the following function to get the indices which overlapped with enhancer histone marks (H3K4me1 in the following case). The peaks identified by Roadmap Epigenetics Project were retrieved from [http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated](http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated), and run:
@@ -129,7 +129,7 @@ i <- filterPeak(c("E003-H3K4me1.narrowPeak","E006-H3K4me1.narrowPeak"), bed, gro
 | Trophoblast Stem Cells ([TSC](https://github.com/qwang-big/irene-data/blob/master/TSC.hg19.rda)) | Embryonic Stem Cells |
 | H1 BMP4 derived Mesendoderm ([MES](https://github.com/qwang-big/irene-data/blob/master/MES.hg19.rda)) | Embryonic Stem Cells |
 
-*For CLL test case, one can simply load necessary dataset with*: 
+*For CLL test case, which is already incorporated in the package, one can simply load necessary dataset with*: 
 ```r
 data(CLL)
 ```
@@ -164,7 +164,7 @@ The output *res* is a named list which has three keys: *gr*, *Dobs*, and *proj*.
 |     chr6 | 131063357 | 131063417  | EPB41L2_4 | 21.57229 | -12.886749 | -0.8408109 |
 |     chr2 | 158457054 | 158457114   |   PKP4_1 | 21.42755 | -8.421447 | -4.6387676 |
 
-The table is sorted descendingly by PC1
+The table is sorted descending by PC1
 
 * **Dobs**
 The D matrix, which contains the observed differences between the two conditions. This is the data analyzed by dPCA.
@@ -203,7 +203,7 @@ res$pg$prom <- getPromId(res$gr, pc="PC1")
 ```
 
 ## Use literature-derived marker genes as a metric for evaluating the ranking
-Cancer and cell-type specific marker genes are listed in Table S2 & 3 of Qi Wang's dissertation, which are already compiled as an R object and can be loaded with: 
+Cancer and cell-type specific marker genes are listed in Table S2 & 3 of Qi Wang's [disseration](https://github.com/qwang-big/irene-web/blob/master/docs/chapter3.pdf), which are already compiled as an R object and can be loaded with: 
 ```r
 data(markers)
 ```
@@ -215,7 +215,7 @@ plotRank(res$pg, markers$CLL)
 , where we use the CLL marker genes for this test, and the area under the curve (AUC) of each ranking list is described in the legend. 
 
 ## Network analysis of the enriched pathways of significant epigenetic alterated genes
-Network analysis groups highly-ranked genes according to known gene interaction database, and further searches clusters of genes in biological function databases. Here we loaded Human Protein Reference Database (HPRD) for grouping genes: 
+Network analysis groups highly-ranked genes according to known gene interaction database, and further searches clusters of genes in biological function databases. Here we loaded Human Protein Reference Database ([HPRD](http://www.hprd.org/)) for grouping genes: 
 ```r
 data(hprd)
 ```
@@ -226,7 +226,7 @@ g <- edgeRank(res$pg[[1]], hprd)
 ```
 , where we created a weighted HPRD networks using the edge weights calculated from the PC1 of the genes. 
 
-Afterwards, we create a list of top-ranked sub-networks with desired number, e.g. 15 sub-networks: 
+Afterwards, we create a list of top-ranked sub-networks with desired number, e.g., 15 sub-networks: 
 ```r
 res$gs <- exportMultinets(g, 15)
 ```
@@ -237,13 +237,19 @@ res$ga <- annotNets(res$gs)
 ```
 
 # Outputs
-The following commands need to be executed to generate HTML outputs for interactive exploration of the enriched networks, epigenetic browser, rank comparisons and benchmarking (ROC curves). 
+The following commands need to be executed to generate HTML outputs for interactive exploration of the enriched networks, epigenetic tracks, rank comparisons and benchmarking (ROC curves). 
 To begin with, a prefix variable should be set corresponding to the experiment first, as for this test case we set: 
 ```r
 prefix = "CLL"
 ```
 
-Write the two ranking list to a CSV file for comparison, importances of the genes are ordered from the top to the bottom of the list.
+The files are created in the current working directory if not mentioned explicitly. Use the following commands to create a specific folder for the outputs (e.g., a sub-directory in the home folder):
+```r
+dir.create("~/CLLoutput")
+setwd("~/CLLoutput")
+```
+
+Write the two ranking list to a CSV file for comparison, significance of the genes from the highest to the lowest are ordered from the top to the bottom of the list.
 ```r
 writeRank(res$pg[[1]], res$pg$prom, prefix)
 ```
@@ -253,7 +259,7 @@ Write the normalized epigenome signals of the two groups, labels of the two grou
 writeData(res$gr, c("CLL", "Bcell"), prefix)
 ```
 
-, and the sub-networks list was saved to a JSON file for visualizing in an internet browser: 
+, and the sub-networks list was saved to a JSON with each network structure: 
 ```r
 exportJSONnets(res$gs, prefix)
 ```
@@ -263,22 +269,49 @@ In addition, the enriched pathways of the sub-networks are also saved as JSON fi
 exportJSONpathways(res$ga, prefix, n=15)
 ```
 
+Finally, create an index page in the same directory with above JSON files for visualizing in an internet browser:
+```r
+exportApps(prefix)
+```
+
 # Interpreting the results
+The above mentioned test cases are hosted in another repository [http://qwang-big.github.io/irene-web](http://qwang-big.github.io/irene-web), in which the outputs are presented in the following four sections: 
 
 ## Rank list
+For every test case, Irene produced two rank lists: one is from PageRank score (generated from promoter and enhancer scores, as well as P-E interactions, therefore abbreviated as PromEnh), another is from the PC1 scores of promoters (abbreviated as PromOnly). Both lists are contained in a CSV file for downloading, which looks like:
 
+| | PromEnh | PromOnly |
+|--|-------------|---------------|
+| 1| MED13L | CBWD5 |
+| 2| CBLB | CBWD3 |
+| 3| VAV3 | CBWD7 |
+| 4| LPP | SERF1B |
+| 5| NOTCH2 | SERF1A |
+| 6| MKLN1 | HIST2H4A |
+| 7| ARHGAP15 | HIST2H4B |
+| 8| BACH2 | GTF2H2 |
+| 9| MGAT5 | NOTCH4 |
+...
 
-## Pathway enrichment
+, where the genes are ordered from the most significant to the least significant in both lists, and the line numbers correspond to the positions in the lists. 
 
-## Epigenome signals
+Plotting the positions of each gene in a two-dimensional [graph](http://qwang-big.github.io/irene-web/rank.html?sample=CLL) allows one to inspect the level of significance regarding the promoters or enhancers of a gene, whereas the genes under high enhancer/low promoter regulation are placed at the bottom-right corner of the graph. In the above *CLL* test case, it implies many genes are ranked higher by considering the alteration of enhancers, and the baseline became distorted for those genes who did not receive contribution from enhancers. 
+The selected marker genes in benchmarking, as well as from other collections ([COSMIC](https://cancer.sanger.ac.uk/cosmic), [MalaCards](https://www.malacards.org/), [IntOGen](https://www.intogen.org/)) are listed besides the graph, so that the genes are highlighted in red upon clicking the corresponding item. Additional information are shown as mouse-over tooltips or links in the pop-ups. 
 
-## 
+## Network enrichment
+In these network [presentations](http://qwang-big.github.io/irene-web/net.html?sample=CLL), the enriched sub-networks are ordered based on the average significance of the their nodes, wherein the left-side of the node represents its rank in the *PromEnh* list, and the right-side of the node represents its rank in the *PromOnly* list. Pathways of each sub-network are tested with *EnrichR*, and the ones which are significantly enriched in KEGG and WikiPathways are listed. Upon clicking an item in the drop list of pathways, the corresponding genes in that pathway are highlighted in red. Additional information are shown as mouse-over tooltips or links in the pop-ups. 
+
+## Epigenome heatmap
+The epigenome [heatmap](http://qwang-big.github.io/irene-web/browse.html?sample=CLL) serves as an interactive browser of normalized epigenetic signals, wherein tracks from different samples are aligned in accordance with biological conditions and epigenetic marks. In this presentation, the whole genome is divided into bins with fixed length (2kb in this test case). To preserve storage space, only the bins overlaped with the provided promoter/enhancer regions are rendered, leaving the rest of the genome in background color. The top-most track represent the regulatory genomic elements (promoters/enhancers), wherein the colors are corresponding to their PC1 scores and the promoter of the gene name from user input is centered. The triangles above the regulatory elements represent the referred targets from the available resources in the drop list (*GeneHancer* interactions by default). The other tracks represent the data intensities, wherein the colors are corresponding to the normalized epigenetic signals. Additional information are shown as mouse-over tooltips or links in the pop-ups. 
+
+## Hallmark ROC
+The receiver operating characteristic ([ROC](http://qwang-big.github.io/irene-web/roc.html?sample=CLL)) curves represent the ECDF of marker genes (curated for benchmarking, [COSMIC](https://cancer.sanger.ac.uk/cosmic), [MalaCards](https://www.malacards.org/), [IntOGen](https://www.intogen.org/)) of the two rank lists (PromEnh and PromOnly). The curves are updated upon clicking the item listed besides the graph. 
 
 # Case studies
 Epigenetic and expression data were downloaded from [**EdaccData Release-9**](http://genboree.org/EdaccData/Release-9/experiment-sample/), [**CEEHRC**](http://www.epigenomes.ca/), [**BLUEPRINT**](http://www.blueprint-epigenome.eu/). 
 
 # Acknowledgements
-The results presented here are in part based upon data generated by The Canadian Epigenetics, Epigenomics, Environment and Health Research Consortium (CEEHRC) initiative funded by the Canadian Institutes of Health Research (CIHR), Genome BC, and Genome Quebec. Information about CEEHRC and the participating investigators and institutions can be found at http://www.cihr-irsc.gc.ca/e/43734.html. 
+The results presented here are in part based upon data generated by The Canadian Epigenetics, Epigenomics, Environment and Health Research Consortium (CEEHRC) initiative funded by the Canadian Institutes of Health Research (CIHR), Genome BC, and Genome Quebec. Information about CEEHRC and the participating investigators and institutions can be found at [http://www.cihr-irsc.gc.ca/e/43734.html](http://www.cihr-irsc.gc.ca/e/43734.html). 
 
 # References
 - <a id="schmitt-ad-2016"></a> Schmitt AD, Hu M, Jung I, et al. A Compendium of Chromatin Contact Maps Reveals Spatially Active Regions in the Human Genome. Cell Reports. 2016;17(8):2042–2059.
@@ -287,12 +320,10 @@ Proceedings of the National Academy of Sciences. 2013;110(17):6789–6794.
 
 # License
 ----
-
 MIT
 
 # Supplymentary Info
-## 
-![### bigwigaverageoverbed]
+- <a id="bigwigaverageoverbed"></a> Constructing **data** object from BigWig files with *bigWigAverageOverBed*: 
 
 # Session Info
 ```r

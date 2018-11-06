@@ -474,7 +474,7 @@ writeJSONArray <- function(data, file){
   '"]'),file=file)
 }
 
-writeData <- function(data, groupLabels, prefix, n=61, name=NULL, intTemp=FALSE){
+writeData <- function(data, groupLabels, prefix, n=61, width=2000, name=NULL, intTemp=FALSE){
   filename <- prefix
   data <- order2(data)
   code <- unlist(strsplit("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",""))
@@ -498,7 +498,7 @@ writeData <- function(data, groupLabels, prefix, n=61, name=NULL, intTemp=FALSE)
   data <- apply(round((data-min(data))*k), 2, function(i) code[i+1])
   data <- apply(data, 1, function(i) paste0(i,collapse=""))
   write.csv(name[ix], file=paste0(filename,'name.csv'), quote=FALSE, row.names = FALSE)
-  write.csv(cbind(id=overlapWins(gr), gr, name=id, dpc, data), file=paste0(filename,'seq.csv'), quote=FALSE, row.names = FALSE)
+  write.csv(cbind(id=overlapWins(gr, width), gr, name=id, dpc, data), file=paste0(filename,'seq.csv'), quote=FALSE, row.names = FALSE)
   if (intTemp){
   writeLines('{"Prom":[],"Enh":[],"DefaultType":0,"Type":["no capture Hi-C data available"]}',con=paste0(filename,'int.json'))
   writeLines('P,E,T',con=paste0(filename,'int.csv'))}

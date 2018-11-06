@@ -17,7 +17,7 @@ Lists of igraph networks to annotate.
 }
 
 \item{sel}{
-Selected database IDs, see \code{listEnrichrDbs} from \code{enrichR} for more information.
+Selected database IDs, see \code{listEnrichrDbs} from \code{enrichR} for more information. By default, it uses KEGG (ID=94) and WikiPathways (ID=95) for enrichment. 
 }
 }
 
