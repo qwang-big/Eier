@@ -86,7 +86,7 @@ In practice, as TADs between different cell types are relative conserved ([Schmi
 
 The **BigWig** files for our test cases were converted from wig files retrieved from [NIH Roadmap Epigenomics Project data gateway](https://www.ncbi.nlm.nih.gov/geo/roadmap/epigenomics/), BLUEPRINT, and [CEEHRC](http://www.epigenomes.ca/), respectively.  Precompiled R objects in our test cases can be retrieved from [here](#precompiled) 
 
-# Usage
+# USAGE
 ## R environment for the test cases.
 The following options were set up during performing our tests. 
 ```r
