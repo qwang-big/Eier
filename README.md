@@ -129,7 +129,7 @@ i <- filterPeak(c("E003-H3K4me1.narrowPeak","E006-H3K4me1.narrowPeak"), bed, gro
 | Trophoblast Stem Cells ([TSC](https://github.com/qwang-big/irene-data/blob/master/TSC.hg19.rda)) | Embryonic Stem Cells |
 | H1 BMP4 derived Mesendoderm ([MES](https://github.com/qwang-big/irene-data/blob/master/MES.hg19.rda)) | Embryonic Stem Cells |
 
-*For CLL test case, which is already incorporated in the package, one can simply load necessary dataset with*: 
+*Full R code for analyzing the above datasets is in the [supplymentary](#fullcode). For CLL test case, which is already incorporated in the package, one can simply load necessary dataset with*: 
 ```r
 data(CLL)
 ```
@@ -182,7 +182,7 @@ H1 <- read.table('https://raw.githubusercontent.com/qwang-big/irene-data/master/
 
 * Transform the P-E interactions from bp to Mb:
 ```r
-H1[,3] <- abs(H1[,3]/1000000)
+H1[,3] <- abs(H1[,3]/1e6)
 ```
 
 * Apply a power-decay function to represent the likelihood of P-E interactions. The choice of power-coefficient is explained in Figure 3.11 and Figure 3.14b of Qi Wang's dissertation. We recommand using -20 for all the test cases. 
@@ -324,6 +324,249 @@ MIT
 
 # Supplymentary Info
 - <a id="bigwigaverageoverbed"></a> Constructing **data** object from BigWig files with *bigWigAverageOverBed*: 
+- <a id="fullcode">Full R code for all test cases.
+```r
+library(irene)
+options(stringsAsFactors = FALSE)
+H1=read.table('https://raw.githubusercontent.com/qwang-big/irene-data/master/PEdistances/H1.hg19.pair')
+H1[,3]=abs(H1[,3]/1e6)
+H1[,3]=exp(-20*H1[,3]+1)
+data(hprd)
+data(markers)
+
+case = "NPC"
+load(url("https://github.com/qwang-big/irene-data/blob/master/NPC.hg19.rda"))
+j = c(1,2,3,5,6)
+lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
+data = data[match(bed[,4],rownames(data)),]
+npc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(npc$Dobs, lbl[j], scales::percent(npc$proj['percent_var',]), title=case)
+exportD(npc$Dobs, lbl[j], case)
+writeData(npc$gr, c("NPC", "ESC"), "NPC")
+npc$pg=pageRank(npc$gr, H1, statLog=case, rewire=F)
+npc$pg$prom=getPromId(npc$gr)
+(npc$auc=plotRank(npc$pg, markers[[case]]))
+writeRank(npc$pg[[1]],npc$pg$prom, case)
+g=edgeRank(npc$pg[[1]],hprd)
+npc$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(npc$gs, case)
+npc$ga = annotNets(npc$gs)
+exportJSONpathways(npc$ga, case, n=15)
+
+case = "MSC"
+load(url("https://github.com/qwang-big/irene-data/blob/master/MSC.hg19.rda"))
+j = c(1,2,3,5,6)
+lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
+data = data[match(bed[,4],rownames(data)),]
+msc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(msc$Dobs, lbl[j], scales::percent(msc$proj['percent_var',]), title=case)
+exportD(msc$Dobs, lbl[j], case)
+writeData(msc$gr, c("MSC", "ESC"), "MSC")
+msc$pg=pageRank(msc$gr, H1, statLog=case, rewire=F)
+msc$pg$prom=getPromId(msc$gr)
+(msc$auc=plotRank(msc$pg, markers[[case]]))
+writeRank(msc$pg[[1]],msc$pg$prom, case)
+g=edgeRank(msc$pg[[1]],hprd)
+msc$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(msc$gs, case)
+msc$ga = annotNets(msc$gs)
+exportJSONpathways(msc$ga, case, n=15)
+
+case = "MES"
+load(url("https://github.com/qwang-big/irene-data/blob/master/MES.hg19.rda"))
+j = c(1,2,3,5,6)
+lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
+data = data[match(bed[,4],rownames(data)),]
+mes = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(mes$Dobs, lbl[j], title=case)
+mes$pg=pageRank(mes$gr, H1, rewire=F)
+mes$pg$prom=getPromId(mes$gr)
+
+case = "TSC"
+load(url("https://github.com/qwang-big/irene-data/blob/master/TSC.hg19.rda"))
+j = c(1,2,3,5,6)
+lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
+data = data[match(bed[,4],rownames(data)),]
+tsc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(tsc$Dobs, lbl[j], scales::percent(tsc$proj['percent_var',]), title=case)
+exportD(tsc$Dobs, lbl[j], case)
+writeData(tsc$gr, c("TSC", "ESC"), "TSC")
+tsc$pg=pageRank(tsc$gr, H1, statLog=case, rewire=F)
+tsc$pg$prom=getPromId(tsc$gr)
+(tsc$auc=plotRank(tsc$pg, markers[[case]]))
+writeRank(tsc$pg[[1]],tsc$pg$prom, case)
+g=edgeRank(tsc$pg[[1]],hprd)
+tsc$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(tsc$gs, case)
+tsc$ga = annotNets(tsc$gs)
+exportJSONpathways(tsc$ga, case, n=15)
+
+case = "CLL"
+load(url("https://github.com/qwang-big/irene-data/blob/master/CLL.hg19.rda"))
+j = c(1,2,6,8)
+data = data[match(bed[,4],rownames(data)),]
+lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth')
+cll = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(cll$Dobs, lbl[j], scales::percent(cll$proj['percent_var',]), title=case)
+exportD(cll$Dobs, lbl[j], case)
+writeData(cll$gr, c("CLL", "Bcell"), "CLL", intTemp=FALSE)
+cll$pg=pageRank(cll$gr, H1, statLog=case, rewire=F)
+cll$pg$prom=getPromId(cll$gr)
+(cll$auc=plotRank(cll$pg, markers[[case]]))
+writeRank(cll$pg[[1]],cll$pg$prom, case)
+g=edgeRank(cll$pg[[1]],hprd)
+cll$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(cll$gs, case)
+cll$ga = annotNets(cll$gs)
+exportJSONpathways(cll$ga, case, n=15)
+
+case = "PTC"
+load(url("https://github.com/qwang-big/irene-data/blob/master/PTC.hg19.rda"))
+j = c(1,2,4,6,8)
+data = data[match(bed[,4],rownames(data)),]
+lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth')
+ptc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(ptc$Dobs, lbl[j], scales::percent(ptc$proj['percent_var',]), title=case)
+exportD(ptc$Dobs, lbl[j], case)
+writeData(ptc$gr, c("PTC", "Thyroid"), "PTC")
+ptc$pg=pageRank(ptc$gr, H1, statLog=case, rewire=F)
+ptc$pg$prom=getPromId(ptc$gr)
+(ptc$auc=plotRank(ptc$pg, markers[[case]]))
+writeRank(ptc$pg[[1]],ptc$pg$prom, case)
+g=edgeRank(ptc$pg[[1]],hprd)
+ptc$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(ptc$gs, case)
+ptc$ga = annotNets(ptc$gs)
+exportJSONpathways(ptc$ga, case, n=15)
+
+case = "CRC"
+load(url("https://github.com/qwang-big/irene-data/blob/master/CRC.hg19.rda"))
+j = c(1,2,4,6,8)
+data = data[match(bed[,4],rownames(data)),]
+lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth')
+crc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(crc$Dobs, lbl[j], scales::percent(crc$proj['percent_var',]), title=case)
+exportD(crc$Dobs, lbl[j], case)
+writeData(crc$gr, c("CRC", "Colon"), "CRC", intTemp=FALSE)
+crc$pg=pageRank(crc$gr, H1, statLog=case, rewire=F)
+crc$pg$prom=getPromId(crc$gr)
+(crc$auc=plotRank(crc$pg, markers[[case]]))
+writeRank(crc$pg[[1]],crc$pg$prom, case)
+g=edgeRank(crc$pg[[1]],hprd)
+crc$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(crc$gs, case)
+crc$ga = annotNets(crc$gs)
+exportJSONpathways(crc$ga, case, n=15)
+
+case = "AML"
+load(url("https://github.com/qwang-big/irene-data/blob/master/nkAML.hg38.rda"))
+j = 1:6
+data = data[match(bed[,4],rownames(data)),]
+lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
+aml = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(aml$Dobs, lbl[j], scales::percent(aml$proj['percent_var',]), title=case)
+exportD(aml$Dobs, lbl[j], case)
+writeData(aml$gr, c("AML", "Bcell"), "AML", intTemp=FALSE)
+aml$pg=pageRank(aml$gr, H1, statLog=case, rewire=F)
+aml$pg$prom=getPromId(aml$gr)
+writeRank(aml$pg[[1]],aml$pg$prom, case)
+g=edgeRank(aml$pg[[1]],hprd)
+aml$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(aml$gs, case)
+aml$ga = annotNets(aml$gs)
+exportJSONpathways(aml$ga, case, n=15)
+
+case = "ALL"
+load(url("https://github.com/qwang-big/irene-data/blob/master/ALL.hg38.rda"))
+j = 1:6
+data = data[match(bed[,4],rownames(data)),]
+lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
+all = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(all$Dobs, lbl[j], scales::percent(all$proj['percent_var',]), title=case)
+exportD(all$Dobs, lbl[j], case)
+writeData(all$gr, c("ALL", "Bcell"), "ALL", intTemp=FALSE)
+all$pg=pageRank(all$gr, H1, statLog=case, rewire=F)
+all$pg$prom=getPromId(all$gr)
+writeRank(all$pg[[1]],all$pg$prom, case)
+g=edgeRank(all$pg[[1]],hprd)
+all$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(all$gs, case)
+all$ga = annotNets(all$gs)
+exportJSONpathways(all$ga, case, n=15)
+
+case = "mCLL"
+load(url("https://github.com/qwang-big/irene-data/blob/master/mCLL.hg38.rda"))
+j = 1:6
+data = data[match(bed[,4],rownames(data)),]
+lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
+mcll = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(mcll$Dobs, lbl[j], scales::percent(mcll$proj['percent_var',]), title=case)
+exportD(mcll$Dobs, lbl[j], case)
+writeData(mcll$gr, c("mCLL", "Bcell"), "mCLL", intTemp=FALSE)
+mcll$pg=pageRank(mcll$gr, H1, statLog=case, rewire=F)
+mcll$pg$prom=getPromId(mcll$gr)
+writeRank(mcll$pg[[1]],mcll$pg$prom, case)
+g=edgeRank(mcll$pg[[1]],hprd)
+mcll$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(mcll$gs, case)
+mcll$ga = annotNets(mcll$gs)
+exportJSONpathways(mcll$ga, case, n=15)
+
+case = "MM"
+load(url("https://github.com/qwang-big/irene-data/blob/master/MM.hg38.rda"))
+j = 1:6
+data = data[match(bed[,4],rownames(data)),]
+lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
+mm = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(mm$Dobs, lbl[j], scales::percent(mm$proj['percent_var',]), title=case)
+exportD(mm$Dobs, lbl[j], case)
+writeData(mm$gr, c("MM", "Bcell"), "MM", intTemp=FALSE)
+mm$pg=pageRank(mm$gr, H1, statLog=case, rewire=F)
+mm$pg$prom=getPromId(mm$gr)
+writeRank(mm$pg[[1]],mm$pg$prom, case)
+g=edgeRank(mm$pg[[1]],hprd)
+mm$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(mm$gs, case)
+mm$ga = annotNets(mm$gs)
+exportJSONpathways(mm$ga, case, n=15)
+
+case = "MCL"
+load(url("https://github.com/qwang-big/irene-data/blob/master/MCL.hg38.rda"))
+j = 1:6
+data = data[match(bed[,4],rownames(data)),]
+lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
+mcl = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+plotD(mcl$Dobs, lbl[j], scales::percent(mcl$proj['percent_var',]), title=case)
+exportD(mcl$Dobs, lbl[j], case)
+writeData(mcl$gr, c("MCL", "Bcell"), "MCL", intTemp=FALSE)
+mcl$pg=pageRank(mcl$gr, H1, statLog=case, rewire=F)
+mcl$pg$prom=getPromId(mcl$gr)
+writeRank(mcl$pg[[1]],mcl$pg$prom, case)
+g=edgeRank(mcl$pg[[1]],hprd)
+mcl$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(mcl$gs, case)
+mcl$ga = annotNets(mcl$gs)
+exportJSONpathways(mcl$ga, case, n=15)
+
+case = "LGG"
+load(url("https://github.com/qwang-big/irene-data/blob/master/LGG.hg19.rda"))
+j = c(1,2,4,6)
+data = data[match(bed[,4],rownames(data)),]
+lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth','K9ac')
+glm = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, nMColMeanCent=1, processedData=T)
+plotD(glm$Dobs, lbl[j], scales::percent(glm$proj['percent_var',]), title=case)
+exportD(glm$Dobs, lbl[j], case)
+writeData(glm$gr, c("LGG", "Brain"), "LGG")
+glm$pg=pageRank(glm$gr, H1, statLog=case, rewire=F)
+glm$pg$prom=getPromId(glm$gr)
+writeRank(glm$pg[[1]],glm$pg$prom, case)
+(glm$auc=plotRank(glm$pg, markers[[case]])
+g=edgeRank(glm$pg[[1]],hprd)
+glm$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(glm$gs, case)
+glm$ga = annotNets(glm$gs)
+exportJSONpathways(glm$ga, case, n=15)
+```
 
 # Session Info
 ```r

@@ -214,7 +214,7 @@ getJSONgenes <- function (df, n=5) {
   paste0(str_replace_all(df[1:n, "Genes"], ';', '","'),collapse='"],["')
 }
 
-exportJSONpathways <- function(enriched, file, n=5) {
+exportJSONpathways <- function(enriched, prefix, n=5) {
   s <- '['
   for(df in enriched) {
     n <- min(n, nrow(df))
@@ -271,10 +271,10 @@ plotDPC <- function(obj, labels, saveFile=FALSE){
   plotD(obj$Dobs, labels, scales::percent(obj$proj[2,]))
 }
 
-exportD <- function(Dobs, labels, file){
+exportD <- function(Dobs, labels, prefix){
 	x <- t(prcomp(Dobs)$rotation)
 	colnames(x) <- labels
-	write.csv(x,file=file,row.names=F,quote=F)
+	write.csv(x,file=paste0(prefix,"comp.csv"),row.names=F,quote=F)
 }
 
 .trapz <- function (x, y) {
@@ -392,7 +392,7 @@ pageRank <- function(pcs, x, damping = 0.85, dWeight=1e-99, fun = NULL, maxTry=1
     dg2 <- degree(g,mode="out")
     df <- cbind(as.matrix(summary(dg1[!isEnh(names(dg1))])), as.matrix(summary(dg2[isEnh(names(dg2))])))
     colnames(df) <- c("prom","enh")
-    write.csv(df, file=statLog, quote=FALSE, row.names=FALSE)
+    write.csv(df, file=paste0(statLog,"stat.csv"), quote=FALSE, row.names=FALSE)
   }
   pcd <- grep('PCx|PC\\d+',names(pcs), ignore.case = TRUE)
   vs <- vector(mode = "list", length = length(pcd))
