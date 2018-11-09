@@ -121,7 +121,7 @@ exportMultinets <- function(g, n=5, steps=4, rewire=FALSE, simplify=TRUE) {
     # shuffle initial weights and assign them randomly to edges
     E(g)$weight <- sample(E(g)$weight)
   }
-  if (simplify) g <- simplify(g)
+  if (simplify) g <- igraph::simplify(g)
   gs <- .walktrapClustering(g, n, steps)
   gs2<- lapply(gs[1:3], function(g2) .walktrapClustering(g2,0,steps))
   gs <- c(gs2[[1]][maxG(gs2[[1]])],gs2[[2]][maxG(gs2[[2]])],gs2[[3]][maxG(gs2[[3]])],gs[-c(1:3)])
@@ -340,6 +340,12 @@ writeRank <- function(id, id2, prefix, header=c("PromEnh","PromOnly")) {
   write.csv(x, paste0(prefix,"rank.csv"), quote=FALSE, row.names=FALSE)
 }
 
+writeMarkers <- function(m, prefix) {
+  x <- do.call("rbind",lapply(seq_len(length(m)),function(i) cbind(m[[i]],names(m)[i])))
+  colnames(x) <- c("name","source")
+  write.csv(x, paste0(prefix,"marker.csv"), quote=FALSE, row.names=FALSE)
+}
+
 .lw <- function (x) length(which(x))
 
 .ecdf <- function (x, n) {
@@ -347,7 +353,7 @@ writeRank <- function(id, id2, prefix, header=c("PromEnh","PromOnly")) {
     if (n < 1)
         stop("'x' must have 1 or more non-missing values")
     vals <- unique(x)
-    rval <- approxfun(c(vals,n), c(cumsum(tabulate(match(x, vals)))/length(x),1),
+    rval <- stats::approxfun(c(vals,n), c(cumsum(tabulate(match(x, vals)))/length(x),1),
         method = "constant", yleft = 0, yright = 1, f = 0, ties = "ordered")
     class(rval) <- c("ecdf", "stepfun", class(rval))
     assign("nobs", n, envir = environment(rval))
@@ -674,7 +680,11 @@ writeLines(paste0('<!DOCTYPE html><html><head><title>',name,'</title><link rel="
 "<tr>",.tblNode("stat",name,name),paste0(sapply(c("net","browse","rank","roc"), function(d) .tblNode(d, name)),collapse=''),"</tr></table></body></html>",collapse=''), con=paste0(exdir,'/index.html'))
 }
 
-exportApps <- function(name, exdir = ".") {
+exportApps <- function(name, markers=NULL, exdir = ".") {
 	untar(file.path(system.file("data", package="irene"), "html.tar.gz"), exdir = exdir)
 	writeIndexHtml(name, exdir)
+	if (!is.null(markers)) {
+		writeMarkers(markers, name)
+	}
+
 }

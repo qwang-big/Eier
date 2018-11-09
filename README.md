@@ -335,7 +335,7 @@ data(hprd)
 data(markers)
 
 case = "NPC"
-load(url("https://github.com/qwang-big/irene-data/blob/master/NPC.hg19.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/NPC.hg19.rda"))
 j = c(1,2,3,5,6)
 lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
 data = data[match(bed[,4],rownames(data)),]
@@ -352,9 +352,10 @@ npc$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(npc$gs, case)
 npc$ga = annotNets(npc$gs)
 exportJSONpathways(npc$ga, case, n=15)
+exportApps(case, markers[case])
 
 case = "MSC"
-load(url("https://github.com/qwang-big/irene-data/blob/master/MSC.hg19.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/MSC.hg19.rda"))
 j = c(1,2,3,5,6)
 lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
 data = data[match(bed[,4],rownames(data)),]
@@ -371,9 +372,10 @@ msc$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(msc$gs, case)
 msc$ga = annotNets(msc$gs)
 exportJSONpathways(msc$ga, case, n=15)
+exportApps(case, markers[case])
 
 case = "MES"
-load(url("https://github.com/qwang-big/irene-data/blob/master/MES.hg19.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/MES.hg19.rda"))
 j = c(1,2,3,5,6)
 lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
 data = data[match(bed[,4],rownames(data)),]
@@ -383,7 +385,7 @@ mes$pg=pageRank(mes$gr, H1, rewire=F)
 mes$pg$prom=getPromId(mes$gr)
 
 case = "TSC"
-load(url("https://github.com/qwang-big/irene-data/blob/master/TSC.hg19.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/TSC.hg19.rda"))
 j = c(1,2,3,5,6)
 lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
 data = data[match(bed[,4],rownames(data)),]
@@ -400,9 +402,10 @@ tsc$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(tsc$gs, case)
 tsc$ga = annotNets(tsc$gs)
 exportJSONpathways(tsc$ga, case, n=15)
+exportApps(case, markers[case])
 
 case = "CLL"
-load(url("https://github.com/qwang-big/irene-data/blob/master/CLL.hg19.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/CLL.hg19.rda"))
 j = c(1,2,6,8)
 data = data[match(bed[,4],rownames(data)),]
 lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth')
@@ -419,9 +422,10 @@ cll$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(cll$gs, case)
 cll$ga = annotNets(cll$gs)
 exportJSONpathways(cll$ga, case, n=15)
+exportApps(case, markers[c(case,"OG")])
 
 case = "PTC"
-load(url("https://github.com/qwang-big/irene-data/blob/master/PTC.hg19.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/PTC.hg19.rda"))
 j = c(1,2,4,6,8)
 data = data[match(bed[,4],rownames(data)),]
 lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth')
@@ -438,9 +442,10 @@ ptc$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(ptc$gs, case)
 ptc$ga = annotNets(ptc$gs)
 exportJSONpathways(ptc$ga, case, n=15)
+exportApps(case, markers[c(case,"OG")])
 
 case = "CRC"
-load(url("https://github.com/qwang-big/irene-data/blob/master/CRC.hg19.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/CRC.hg19.rda"))
 j = c(1,2,4,6,8)
 data = data[match(bed[,4],rownames(data)),]
 lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth')
@@ -457,9 +462,10 @@ crc$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(crc$gs, case)
 crc$ga = annotNets(crc$gs)
 exportJSONpathways(crc$ga, case, n=15)
+exportApps(case, markers[c(case,"OG")])
 
 case = "AML"
-load(url("https://github.com/qwang-big/irene-data/blob/master/nkAML.hg38.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/nkAML.hg38.rda"))
 j = 1:6
 data = data[match(bed[,4],rownames(data)),]
 lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
@@ -475,9 +481,10 @@ aml$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(aml$gs, case)
 aml$ga = annotNets(aml$gs)
 exportJSONpathways(aml$ga, case, n=15)
+exportApps(case, markers["OG"])
 
 case = "ALL"
-load(url("https://github.com/qwang-big/irene-data/blob/master/ALL.hg38.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/ALL.hg38.rda"))
 j = 1:6
 data = data[match(bed[,4],rownames(data)),]
 lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
@@ -493,9 +500,10 @@ all$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(all$gs, case)
 all$ga = annotNets(all$gs)
 exportJSONpathways(all$ga, case, n=15)
+exportApps(case, markers["OG"])
 
 case = "mCLL"
-load(url("https://github.com/qwang-big/irene-data/blob/master/mCLL.hg38.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/mCLL.hg38.rda"))
 j = 1:6
 data = data[match(bed[,4],rownames(data)),]
 lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
@@ -511,9 +519,10 @@ mcll$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(mcll$gs, case)
 mcll$ga = annotNets(mcll$gs)
 exportJSONpathways(mcll$ga, case, n=15)
+exportApps(case, markers["OG"])
 
 case = "MM"
-load(url("https://github.com/qwang-big/irene-data/blob/master/MM.hg38.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/MM.hg38.rda"))
 j = 1:6
 data = data[match(bed[,4],rownames(data)),]
 lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
@@ -529,9 +538,10 @@ mm$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(mm$gs, case)
 mm$ga = annotNets(mm$gs)
 exportJSONpathways(mm$ga, case, n=15)
+exportApps(case, markers["OG"])
 
 case = "MCL"
-load(url("https://github.com/qwang-big/irene-data/blob/master/MCL.hg38.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/MCL.hg38.rda"))
 j = 1:6
 data = data[match(bed[,4],rownames(data)),]
 lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
@@ -547,9 +557,10 @@ mcl$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(mcl$gs, case)
 mcl$ga = annotNets(mcl$gs)
 exportJSONpathways(mcl$ga, case, n=15)
+exportApps(case, markers["OG"])
 
 case = "LGG"
-load(url("https://github.com/qwang-big/irene-data/blob/master/LGG.hg19.rda"))
+load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/LGG.hg19.rda"))
 j = c(1,2,4,6)
 data = data[match(bed[,4],rownames(data)),]
 lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth','K9ac')
@@ -566,6 +577,7 @@ glm$gs=exportMultinets(g, 15, rewire=F)
 exportJSONnets(glm$gs, case)
 glm$ga = annotNets(glm$gs)
 exportJSONpathways(glm$ga, case, n=15)
+exportApps(case, markers[c(case,"OG")])
 ```
 
 # Session Info
