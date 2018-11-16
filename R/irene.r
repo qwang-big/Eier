@@ -308,6 +308,14 @@ calcCutoff <- function(inputVector){
 	y_cutoff <- inputVector[xPt] #The y-value at this x point. This is our cutoff.
 }
 
+getAUC <- function (x, pos){
+    len <- length(x)
+    fx <- posId(x, pos)
+    ex <- .ecdf(fx, len)
+    s <- seq(0, len, 1)
+    1 - .trapz(ex(s), s/len)
+}
+
 plotRank <- function(x, pos, title="", file=NA, perc=1, captions=NULL){
   cols <- colorRampPalette(c('red','blue','green'))(length(x))
   len <- length(x[[1]])
