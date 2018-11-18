@@ -25,7 +25,7 @@ Title of the plot.
 The filename to be saved as. 
 }
 \item{perc}{
-Numeric value between 0 and 1 indicating how much fraction of marker genes to recover. 
+Numeric value between 0 and 1 indicating how much fraction of marker genes to use. 
 }
 \item{captions}{
 Vector showing legend captions of the plot. 
@@ -40,5 +40,7 @@ The function plots multiple recovery curves according to the order of marker gen
 Qi Wang
 }
 \examples{
-cll$auc=plotRank(cll$pg, read.csv('CLLmarker.csv')[,1])
+data(markers)
+data(sample)
+plotRank(res$pg, markers$CLL)
 }

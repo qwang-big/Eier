@@ -38,5 +38,9 @@ A sorted vector representing the PageRank order of meta-gene names, which highly
 Qi Wang
 }
 \examples{
-pg <- pageRank(gr, H1)
+data(CLL)
+data(sample)
+j <- c(1,2,6,8)
+res <- dPCA(meta, bed, data, datasets=j, transform=j, normlen=j, processedData=TRUE, verbose=TRUE)
+pg <- pageRank(res$gr, h1)
 }

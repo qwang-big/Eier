@@ -43,5 +43,8 @@ Qi Wang
 }
 
 \examples{
-gs=exportMultinets(g, n = 15, rewire = FALSE)
+data(hprd)
+data(sample)
+g <- edgeRank(res$pg, hprd, cutoff=0.9, min=1e-7)
+gs <- exportMultinets(g, n = 15, rewire = FALSE)
 }

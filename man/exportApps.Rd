@@ -1,5 +1,5 @@
-\name{exportD}
-\alias{exportD}
+\name{exportApps}
+\alias{exportApps}
 \title{
 Export Dobs
 }

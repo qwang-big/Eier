@@ -29,5 +29,9 @@ Data.frame with chromosome name, start position, end position, and loci ID.
 Qi Wang
 }
 \examples{
-promoter <- readBED('Promoter.bed')
+#create a dummy bed file for testing
+tf <- tempfile()
+write.table(data.frame(chr=paste0("chr",1:5), start=1:5, end=6:10, id=paste0("gene",1:5)), tf, col.names=F, row.names=F, quote=F, sep="\t")
+#read the bed file just created 
+promoter <- readBED(tf)
 }

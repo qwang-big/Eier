@@ -95,6 +95,6 @@ Qi Wang
 }
 \examples{
 data(CLL)
-j = c(1,2,6,8)
-dPCA(meta, bed, data, datasets=j, transform=j, normlen=j, processedData=TRUE)
+j <- c(1,2,6,8)
+res <- dPCA(meta, bed, data, datasets=j, transform=j, normlen=j, processedData=TRUE, verbose=TRUE)
 }

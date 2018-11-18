@@ -22,7 +22,7 @@ Type of IDs to extract, must be one of the following values:
 Promoter ends with _1 or _2, ..., indicating the isotypes of promoter. 
 }
 \item{enhancer}{
-Enhancer starts with "GH" (Genehancer IDs) or simply likes "chr1_999_1000".
+Enhancer starts with "GH" (Genehancer IDs) or simply likes "chr7_74540885_74541801".
 }
 \item{gene}{
 Promoter IDs striped of suffix. 
@@ -42,5 +42,6 @@ Vector of desired IDs
 Qi Wang
 }
 \examples{
-promId <- getId(id, type="promoter")
+data(sample)
+promId <- getId(res$gr$id, type="promoter")
 }

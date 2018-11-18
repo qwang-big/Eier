@@ -1,7 +1,5 @@
 # Irene: Integrative Ranking with Epigenetic Network of Enhancers
 
-![logo](https://raw.githubusercontent.com/qwang-big/irene/master/images/Irene.png)
-
 [![Build Status](https://travis-ci.org/qwang-big/irene.svg?branch=master)](https://travis-ci.org/qwang-big/irene)
 
 *Irene* is an R package which allows you
@@ -115,15 +113,15 @@ i <- filterPeak(c("E003-H3K4me1.narrowPeak","E006-H3K4me1.narrowPeak"), bed, gro
 
 | Cancer / primary cells | Controls |
 |------------------------|----------|
-| Chronic Lymphocytic Leukemia ([CLL](https://github.com/qwang-big/irene-data/blob/master/CLL.hg19.rda)) | Naive B cell |
-| Acute Lymphoblastic Leukaemia ([ALL](https://github.com/qwang-big/irene-data/blob/master/ALL.hg38.rda)) | Naive B cell |
-| Acute Myeloid Leukaemia ([nkAML](https://github.com/qwang-big/irene-data/blob/master/nkAML.hg38.rda)) | Naive B cell |
-| Multiple Myeloma ([MM](https://github.com/qwang-big/irene-data/blob/master/MM.hg38.rda)) | Naive B cell |
-| Mantle Cell Lymphoma ([MCL](https://github.com/qwang-big/irene-data/blob/master/MCL.hg38.rda)) | Naive B cell |
-| Chronic Lymphocytic Leukemia (mutated) ([mCLL](https://github.com/qwang-big/irene-data/blob/master/mCLL.hg38.rda)) | Naive B cell |
-| Colorectal Cancer ([CRC](https://github.com/qwang-big/irene-data/blob/master/CRC.hg19.rda)) | Sigmoid colon |
-| Lower Grade Glioma ([LGG](https://github.com/qwang-big/irene-data/blob/master/GLM.hg19.rda)) | Normal brain |
-| Papillary Thyroid Cancer ([PTC](https://github.com/qwang-big/irene-data/blob/master/PTC.hg19.rda)) | Normal thyroid |
+| Chronic Lymphocytic Leukemia ([CLL](https://github.com/qwang-big/irene-data/blob/master/CLL.hg19.rda)) | Naive B Cell |
+| Acute Lymphoblastic Leukaemia ([ALL](https://github.com/qwang-big/irene-data/blob/master/ALL.hg38.rda)) | Naive B Cell |
+| Acute Myeloid Leukaemia ([nkAML](https://github.com/qwang-big/irene-data/blob/master/nkAML.hg38.rda)) | Naive B Cell |
+| Multiple Myeloma ([MM](https://github.com/qwang-big/irene-data/blob/master/MM.hg38.rda)) | Naive B Cell |
+| Mantle Cell Lymphoma ([MCL](https://github.com/qwang-big/irene-data/blob/master/MCL.hg38.rda)) | Naive B Cell |
+| Chronic Lymphocytic Leukemia (mutated) ([mCLL](https://github.com/qwang-big/irene-data/blob/master/mCLL.hg38.rda)) | Naive B Cell |
+| Colorectal Cancer ([CRC](https://github.com/qwang-big/irene-data/blob/master/CRC.hg19.rda)) | Sigmoid Colon |
+| Lower Grade Glioma ([LGG](https://github.com/qwang-big/irene-data/blob/master/GLM.hg19.rda)) | Normal Brain |
+| Papillary Thyroid Cancer ([PTC](https://github.com/qwang-big/irene-data/blob/master/PTC.hg19.rda)) | Normal Thyroid |
 | Mesenchymal Stem Cells ([MSC](https://github.com/qwang-big/irene-data/blob/master/MSC.hg19.rda)) | Embryonic Stem Cells |
 | Neural Progenitor Cells ([NPC](https://github.com/qwang-big/irene-data/blob/master/NPC.hg19.rda)) | Embryonic Stem Cells |
 | Trophoblast Stem Cells ([TSC](https://github.com/qwang-big/irene-data/blob/master/TSC.hg19.rda)) | Embryonic Stem Cells |
@@ -339,7 +337,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/NPC.hg19
 j = c(1,2,3,5,6)
 lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
 data = data[match(bed[,4],rownames(data)),]
-npc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+npc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(npc$Dobs, lbl[j], scales::percent(npc$proj['percent_var',]), title=case)
 exportD(npc$Dobs, lbl[j], case)
 writeData(npc$gr, c("NPC", "ESC"), "NPC")
@@ -359,7 +357,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/MSC.hg19
 j = c(1,2,3,5,6)
 lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
 data = data[match(bed[,4],rownames(data)),]
-msc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+msc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(msc$Dobs, lbl[j], scales::percent(msc$proj['percent_var',]), title=case)
 exportD(msc$Dobs, lbl[j], case)
 writeData(msc$gr, c("MSC", "ESC"), "MSC")
@@ -379,7 +377,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/MES.hg19
 j = c(1,2,3,5,6)
 lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
 data = data[match(bed[,4],rownames(data)),]
-mes = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+mes = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(mes$Dobs, lbl[j], title=case)
 mes$pg=pageRank(mes$gr, H1, rewire=F)
 mes$pg$prom=getPromId(mes$gr)
@@ -389,7 +387,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/TSC.hg19
 j = c(1,2,3,5,6)
 lbl=c('Meth','K27ac','K27me3','K36me3','K4me1','K4me3','K9ac','K9me3')
 data = data[match(bed[,4],rownames(data)),]
-tsc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+tsc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(tsc$Dobs, lbl[j], scales::percent(tsc$proj['percent_var',]), title=case)
 exportD(tsc$Dobs, lbl[j], case)
 writeData(tsc$gr, c("TSC", "ESC"), "TSC")
@@ -409,7 +407,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/CLL.hg19
 j = c(1,2,6,8)
 data = data[match(bed[,4],rownames(data)),]
 lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth')
-cll = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+cll = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(cll$Dobs, lbl[j], scales::percent(cll$proj['percent_var',]), title=case)
 exportD(cll$Dobs, lbl[j], case)
 writeData(cll$gr, c("CLL", "Bcell"), "CLL", intTemp=FALSE)
@@ -429,7 +427,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/PTC.hg19
 j = c(1,2,4,6,8)
 data = data[match(bed[,4],rownames(data)),]
 lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth')
-ptc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+ptc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(ptc$Dobs, lbl[j], scales::percent(ptc$proj['percent_var',]), title=case)
 exportD(ptc$Dobs, lbl[j], case)
 writeData(ptc$gr, c("PTC", "Thyroid"), "PTC")
@@ -449,7 +447,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/CRC.hg19
 j = c(1,2,4,6,8)
 data = data[match(bed[,4],rownames(data)),]
 lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth')
-crc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+crc = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(crc$Dobs, lbl[j], scales::percent(crc$proj['percent_var',]), title=case)
 exportD(crc$Dobs, lbl[j], case)
 writeData(crc$gr, c("CRC", "Colon"), "CRC", intTemp=FALSE)
@@ -469,7 +467,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/nkAML.hg
 j = 1:6
 data = data[match(bed[,4],rownames(data)),]
 lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
-aml = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+aml = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(aml$Dobs, lbl[j], scales::percent(aml$proj['percent_var',]), title=case)
 exportD(aml$Dobs, lbl[j], case)
 writeData(aml$gr, c("AML", "Bcell"), "AML", intTemp=FALSE)
@@ -488,7 +486,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/ALL.hg38
 j = 1:6
 data = data[match(bed[,4],rownames(data)),]
 lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
-all = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+all = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(all$Dobs, lbl[j], scales::percent(all$proj['percent_var',]), title=case)
 exportD(all$Dobs, lbl[j], case)
 writeData(all$gr, c("ALL", "Bcell"), "ALL", intTemp=FALSE)
@@ -507,7 +505,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/mCLL.hg3
 j = 1:6
 data = data[match(bed[,4],rownames(data)),]
 lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
-mcll = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+mcll = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(mcll$Dobs, lbl[j], scales::percent(mcll$proj['percent_var',]), title=case)
 exportD(mcll$Dobs, lbl[j], case)
 writeData(mcll$gr, c("mCLL", "Bcell"), "mCLL", intTemp=FALSE)
@@ -527,7 +525,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/MM.hg38.
 j = 1:6
 data = data[match(bed[,4],rownames(data)),]
 lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
-mm = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+mm = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(mm$Dobs, lbl[j], scales::percent(mm$proj['percent_var',]), title=case)
 exportD(mm$Dobs, lbl[j], case)
 writeData(mm$gr, c("MM", "Bcell"), "MM", intTemp=FALSE)
@@ -546,7 +544,7 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/MCL.hg38
 j = 1:6
 data = data[match(bed[,4],rownames(data)),]
 lbl=c("H3K27ac","H3K27me3","H3K36me3","H3K4me1","H3K4me3","H3K9me3","Meth")
-mcl = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, processedData=T)
+mcl = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, verbose=T)
 plotD(mcl$Dobs, lbl[j], scales::percent(mcl$proj['percent_var',]), title=case)
 exportD(mcl$Dobs, lbl[j], case)
 writeData(mcl$gr, c("MCL", "Bcell"), "MCL", intTemp=FALSE)
@@ -565,19 +563,19 @@ load(url("https://raw.githubusercontent.com/qwang-big/irene-data/master/LGG.hg19
 j = c(1,2,4,6)
 data = data[match(bed[,4],rownames(data)),]
 lbl=c('K4me1','K4me3','K9me3','K27me3','K36me3','K27ac','Input','Meth','K9ac')
-glm = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, normalize = FALSE, verbose=F, nMColMeanCent=1, processedData=T)
-plotD(glm$Dobs, lbl[j], scales::percent(glm$proj['percent_var',]), title=case)
-exportD(glm$Dobs, lbl[j], case)
-writeData(glm$gr, c("LGG", "Brain"), "LGG")
-glm$pg=pageRank(glm$gr, H1, statLog=case, rewire=F)
-glm$pg$prom=getPromId(glm$gr)
-writeRank(glm$pg[[1]],glm$pg$prom, case)
-(glm$auc=plotRank(glm$pg, markers[[case]]))
-g=edgeRank(glm$pg[[1]],hprd)
-glm$gs=exportMultinets(g, 15, rewire=F)
-exportJSONnets(glm$gs, case)
-glm$ga = annotNets(glm$gs)
-exportJSONpathways(glm$ga, case, n=15)
+lgg = dPCA(meta, bed[i,], data[i,], datasets=j, transform=j, normlen=j, nMColMeanCent=1, verbose=T)
+plotD(lgg$Dobs, lbl[j], scales::percent(lgg$proj['percent_var',]), title=case)
+exportD(lgg$Dobs, lbl[j], case)
+writeData(lgg$gr, c("LGG", "Brain"), "LGG")
+lgg$pg=pageRank(lgg$gr, H1, statLog=case, rewire=F)
+lgg$pg$prom=getPromId(lgg$gr)
+writeRank(lgg$pg[[1]],lgg$pg$prom, case)
+(lgg$auc=plotRank(lgg$pg, markers[[case]]))
+g=edgeRank(lgg$pg[[1]],hprd)
+lgg$gs=exportMultinets(g, 15, rewire=F)
+exportJSONnets(lgg$gs, case)
+lgg$ga = annotNets(lgg$gs)
+exportJSONpathways(lgg$ga, case, n=15)
 exportApps(case, markers[c(case,"OG")])
 ```
 

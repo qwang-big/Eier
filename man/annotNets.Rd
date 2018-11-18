@@ -29,5 +29,6 @@ A list of data.frame containing enrichR outputs for each network
 Qi Wang
 }
 \examples{
-annotNets(gs, sel=c(94,95))
+data(sample)
+annotNets(cll$gs, sel=c(94,95))
 }

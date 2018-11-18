@@ -7,7 +7,7 @@ Export Network
 Export network to a JSON file
 }
 \usage{
-exportJSONnets(gs, file)
+exportJSONnets(gs, prefix)
 }
 
 \arguments{
@@ -16,7 +16,7 @@ exportJSONnets(gs, file)
 Lists of igraph networks to export.
 }
 \item{file}{
-The filename of the JSON file to be exported.
+The prefix of the JSON filename to be exported.
 }
 }
 
@@ -28,5 +28,6 @@ This functions writes a JSON file containing the highly-ranked subnetworks which
 Qi Wang
 }
 \examples{
-exportJSONnets(gs, 'CLLnets.json')
+data(sample)
+exportJSONnets(res$gs, 'CLL')
 }

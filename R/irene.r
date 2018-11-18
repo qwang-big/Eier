@@ -83,7 +83,7 @@ isEnh <- function(id) {
   (grepl("^GH\\d+",id) & nchar(id)>10) | grepl("^chr\\d+_\\d+_\\d+",id)
 }
 
-edgeRank <- function(pg, g, min=1e-7, cutoff=0.9, reverse=TRUE) {
+edgeRank <- function(pg, g, cutoff=0.9, min=1e-7, reverse=TRUE) {
   if (is.character(g))
     g <- graph_from_data_frame(read.table(g, stringsAsFactors = FALSE), directed = FALSE)
   else if (class(g)=="data.frame")
@@ -95,9 +95,7 @@ edgeRank <- function(pg, g, min=1e-7, cutoff=0.9, reverse=TRUE) {
   w[is.na(w)]=min
   w[w<quantile(w, cutoff)]=min
   g <- set_edge_attr(g, "weight", value = w)
-  v <- match(V(g)$name, pg)
-  v[is.na(v)]=min
-  set_vertex_attr(g, "weight", value = v)
+  setGRank(pg, g, "weight", min)
 }
 
 setGRank <- function(pg, g, name, min=1e-7) {
@@ -242,11 +240,6 @@ getPromId <- function(gr, pc="PC1"){
   getId(gr[order(abs(gr[,pc]),decreasing=TRUE),'id'], type="gene")
 }
 
-getId2 <- function(id, type = c("gene", "all", "enhancer", "promoter", "original")){
-  name = getId(names(id), type, replacement='_')
-  id[sapply(name,function(x) grep(x,names(id))[1])]
-}
-
 .means <- function(x){
   if (length(dim(x)) < 2L)
     x
@@ -265,10 +258,6 @@ plotD <- function(Dobs, labels, captions=NULL, title="", saveFile=FALSE){
   barplot(prcomp(Dobs)$rotation[,i], names=labels, main=paste0("PC",i,captions[i]), las=2)
   par(mfrow=c(1,1))
   if (saveFile) dev.off()
-}
-
-plotDPC <- function(obj, labels, saveFile=FALSE){
-  plotD(obj$Dobs, labels, scales::percent(obj$proj[2,]))
 }
 
 exportD <- function(Dobs, labels, prefix){
@@ -668,15 +657,6 @@ order2 <- function(bed) do.call("rbind",lapply(split(bed,bed[,1]), function(x) x
   df <- as.data.frame(findOverlaps(gr1, gr2))
   df <- split(df, df[,1])
   lapply(df, function(x) x[,2])
-}
-
-getRank <- function(orderedId, genes, orderby=c("rank","name")) {
-    x <- which(orderedId %in% genes)
-    names(x) <- orderedId[x]
-    if (orderby=="rank")
-        x
-    else
-        x[sort(names(x))]
 }
 
 .tblNode <- function(app, name, label="view") {

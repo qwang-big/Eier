@@ -7,7 +7,7 @@ Assign weights to edges
 Assign weights to edges by summing the ranks of the two connected nodes
 }
 \usage{
-edgeRank(pg, g, min, cutoff, reverse)
+edgeRank(pg, g, cutoff, min, reverse)
 }
 
 \arguments{
@@ -22,7 +22,7 @@ An igraph network object which consists the gene names.
 Minimum scores assigned to the low ranking genes.
 }
 \item{cutoff}{
-A numeric value between 0 and 1 indicating the percentage of genes are considered as low ranking.
+A numeric value between 0 and 1 indicating the percentage of genes are considered as low ranking / discarded.
 }
 \item{reverse}{
 Logical indicating the order of the list. TRUE means highly ranked genes are ordered firstly, otherwise FALSE.
@@ -41,5 +41,7 @@ An igraph network object with weights assigned to the edges.
 Qi Wang
 }
 \examples{
-edgeRank(pg, hprd, min=1e-7, cutoff=0.9, reverse=TRUE)
+data(hprd)
+data(sample)
+g <- edgeRank(res$pg, hprd, cutoff=0.9, min=1e-7)
 }

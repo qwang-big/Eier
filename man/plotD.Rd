@@ -41,5 +41,6 @@ This function performs a principal components analysis on the D matrix, and plot
 Qi Wang
 }
 \examples{
-plotD(cll$Dobs, c('K4me1','K4me3','K27ac','Meth'), scales::percent(cll$proj[2,]))
+data(sample)
+plotD(res$Dobs, c('K4me1','K4me3','K27ac','Meth'), scales::percent(res$proj[2,]))
 }

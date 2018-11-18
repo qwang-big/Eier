@@ -33,7 +33,7 @@ Logical whether to write template files for holding the chromatin interation dat
 }
 
 \details{
-This function writes the epigenetic intensity data per loci sorted with chromesomal positions to a csv file. The data must include all the columns of the returned genomic regions object from \code{\link{dPCA}}
+This function writes the epigenetic intensity data per loci sorted with chromesomal positions to a csv file. The data must include all the columns of the returned genomic regions object by setting \code{processedData=TRUE} in \code{\link{dPCA}}
 }
 
 
@@ -46,5 +46,8 @@ Qi Wang
 }
 
 \examples{
-writeData(cll$gr, c("CLL", "mCLL"), "CLL", intTemp=FALSE)
+data(CLL)
+j <- c(1,2,6,8)
+res <- dPCA(meta, bed, data, datasets=j, transform=j, normlen=j, processedData=TRUE, verbose=TRUE)
+writeData(res$gr, c("CLL", "Bcell"), "CLL")
 }

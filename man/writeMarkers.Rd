@@ -1,13 +1,13 @@
-\name{writeRank}
-\alias{writeRank}
+\name{writeMarkers}
+\alias{writeMarkers}
 \title{
-Write Gene Ranks to File
+Write Marker Genes to File
 }
 \description{
-Write gene ranks derived from enhancers or promoters to file
+Write marker genes specific to each test case to file
 }
 \usage{
-writeRank(id, id2, file)
+writeMarkers(id, id2, file)
 }
 
 \arguments{

@@ -7,7 +7,7 @@ Export Pathways
 Export enriched pathways to a JSON file
 }
 \usage{
-exportJSONpathways(enriched, file, n)
+exportJSONpathways(enriched, prefix, n)
 }
 
 \arguments{
@@ -16,7 +16,7 @@ exportJSONpathways(enriched, file, n)
 Lists of data.frames exported by \code{\link{annotNets}}
 }
 \item{file}{
-The filename of the JSON file to be exported.
+The prefix of the JSON filename to be exported.
 }
 \item{n}{
 Number of pathways to be exported from each database, the pathways are sorted from smallest to the largest by adjusted p-values.
@@ -31,5 +31,6 @@ This functions writes a JSON file containing the pathways, p-values, and gene na
 Qi Wang
 }
 \examples{
-exportJSONpathways(cll$ga, 'CLLpathways.json', n=15)
+data(sample)
+exportJSONpathways(res$ga, 'CLL', n=15)
 }
