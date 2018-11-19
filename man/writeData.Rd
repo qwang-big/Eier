@@ -7,7 +7,7 @@ Write Epigenetic Data
 Write epigenetic intesity data to a file.
 }
 \usage{
-writeData(data, groupLabels, filename, n, name, intTemp)
+writeData(data, groupLabels, prefix, n = 61, width = 2000, name = NULL, intTemp = FALSE)
 }
 
 \arguments{

@@ -7,7 +7,7 @@ Get Desired IDs
 Get gene, enhancer or promoter IDs
 }
 \usage{
-getId(id ,type)
+getId(id ,type, replacement = "")
 }
 
 \arguments{

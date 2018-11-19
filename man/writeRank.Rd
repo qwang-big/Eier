@@ -7,7 +7,7 @@ Write Gene Ranks to File
 Write gene ranks derived from enhancers or promoters to file
 }
 \usage{
-writeRank(id, id2, file)
+writeRank(id, id2, prefix, header = c("PromEnh", "PromOnly"))
 }
 
 \arguments{

@@ -7,7 +7,7 @@ Export Network Communities
 Export network communities according to clustering of edge weights
 }
 \usage{
-exportMultinets(g, n, steps, rewire)
+exportMultinets(g, n = 5, steps = 4, rewire = FALSE, simplify = TRUE)
 }
 
 \arguments{

@@ -30,5 +30,5 @@ Qi Wang
 }
 \examples{
 data(sample)
-annotNets(cll$gs, sel=c(94,95))
+annotNets(res$gs, sel=c(94,95))
 }

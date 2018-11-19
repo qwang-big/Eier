@@ -7,7 +7,8 @@ Rank meta-genes with the PageRank algorithm
 Rank meta-genes according to the scores from the promoter and targeting enhancers
 }
 \usage{
-pageRank(pcs, pe)
+pageRank(pcs, x, damping = 0.85, dWeight = 1e-99, fun = NULL,
+    maxTry = 10, gene.id = TRUE, rewire = FALSE, statLog = NULL)
 }
 
 \arguments{

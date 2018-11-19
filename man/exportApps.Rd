@@ -7,7 +7,7 @@ Export Dobs
 Export Dobs to a csv file
 }
 \usage{
-exportD(Dobs, labels, file)
+exportD(Dobs, labels, prefix)
 }
 
 \arguments{

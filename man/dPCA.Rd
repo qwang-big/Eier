@@ -7,7 +7,19 @@ Differential Principal Component Analysis
 Run differential principal component analysis with incorporated dPCA program
 }
 \usage{
-dPCA(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, transform=NULL, normlen=NULL, minlen=50, fun=function(x) sqrt(mean(x^2)), datasetLabels=NULL, groupLabels=NULL, qnormalize=TRUE, normalize=FALSE, verbose=FALSE, interactive=FALSE, saveFile=FALSE)
+dPCA(meta, bed, data, sampleId = NULL, groups = 1:2,
+    datasets = NULL, transform = NULL, normlen = NULL,
+    minlen = 50, lambda = 0.15, fun = function(x)
+    sqrt(mean(x^2)), datasetLabels = NULL, groupLabels =
+    NULL, qnormalize = TRUE, qnormalizeFirst = FALSE,
+    normalize = FALSE, verbose = FALSE, interactive =
+    FALSE, useSVD = FALSE, saveFile = FALSE, processedData
+    = TRUE, removeLowCoverageChIPseq = FALSE,
+    removeLowCoverageChIPseqProbs = 0.1, dPCsigns = NULL,
+    nPaired = 0, nTransform = 0, nColMeanCent = 0,
+    nColStand = 0, nMColMeanCent = 1, nMColStand = 0,
+    dSNRCut = 5, nUsedPCAZ = 0, nUseRB = 0, dPeakFDRCut =
+    0.5)
 }
 
 \arguments{
