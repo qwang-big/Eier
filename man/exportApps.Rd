@@ -31,8 +31,6 @@ This functions writes a csv file containing the composition of the components wh
 Qi Wang
 }
 \examples{
-dir.create("~/Downloads/tmp",recursive=T)
-setwd("~/Downloads/tmp")
 genes=list(marker=c("BRAF","KRAS","MYC","TP53"))
 exportApps("CLL", genes)
 }

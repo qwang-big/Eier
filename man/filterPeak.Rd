@@ -44,7 +44,7 @@ Qi Wang
 testBed <- tempfile()
 control <- tempfile()
 enhancer <- data.frame(chr="chr1", start=c(1,4,7,10), end=c(2,5,8,11), id=c("GH123456789","GH987654321","prom_1","prom_2"))
-write.table(data.frame(chr="chr1", start=c(1,4,7), end=c(2,5,8)), testBed, col.names=F, row.names=F, quote=F, sep="\t")
-write.table(data.frame(chr="chr1", start=c(1,7,10), end=c(2,8,11)), control, col.names=F, row.names=F, quote=F, sep="\t")
+write.table(data.frame(chr="chr1", start=c(1,4,7), end=c(2,5,8)), testBed, col.names=FALSE, row.names=FALSE, quote=FALSE, sep="\t")
+write.table(data.frame(chr="chr1", start=c(1,7,10), end=c(2,8,11)), control, col.names=FALSE, row.names=FALSE, quote=FALSE, sep="\t")
 i <- filterPeak(c(testBed,control),enhancer,group=1:2,filter="enhancer")
 }
