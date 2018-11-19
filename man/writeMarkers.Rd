@@ -7,7 +7,7 @@ Write Marker Genes to File
 Write marker genes specific to each test case to file
 }
 \usage{
-writeMarkers(m, file)
+writeMarkers(m, prefix)
 }
 
 \arguments{
