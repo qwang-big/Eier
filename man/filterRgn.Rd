@@ -35,4 +35,7 @@ Qi Wang
 \code{\link{filterRgn}}
 }
 \examples{
+testBed <- data.frame(chr="chr1", start=c(1,4,7), end=c(2,5,8))
+control <- data.frame(chr="chr1", start=c(1,7,10), end=c(2,8,11))
+filterRgn(makeGRangesFromDataFrame(testBed),makeGRangesFromDataFrame(control))
 }

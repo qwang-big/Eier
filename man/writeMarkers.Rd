@@ -31,6 +31,6 @@ The function save two columns of gene ranks pair-wiselly to a csv file.
 Qi Wang
 }
 \examples{
-data(sample)
-writeRank(res$pg[[1]], res$pg$prom, "CLLrank.csv")
+genes=list(marker=c("BRAF","KRAS","MYC","TP53"))
+writeMarkers(genes,"CLL")
 }

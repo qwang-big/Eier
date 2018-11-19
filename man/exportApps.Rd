@@ -31,6 +31,8 @@ This functions writes a csv file containing the composition of the components wh
 Qi Wang
 }
 \examples{
-data(sample)
-exportD(res$Dobs, c('K4me1','K4me3','K27ac','Meth'), "CLLcomp.csv")
+dir.create("~/Downloads/tmp")
+setwd("~/Downloads/tmp")
+genes=list(marker=c("BRAF","KRAS","MYC","TP53"))
+exportApps("CLL", genes)
 }

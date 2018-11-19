@@ -669,7 +669,7 @@ writeLines(paste0('<!DOCTYPE html><html><head><title>',name,'</title><link rel="
 }
 
 exportApps <- function(name, markers=NULL, exdir = ".") {
-	untar(file.path(system.file("data", package="irene"), "html.tar.gz"), exdir = exdir)
+	untar(system.file("data", "html.tar.gz", package="irene"), exdir = exdir)
 	writeIndexHtml(name, exdir)
 	if (!is.null(markers)) {
 		writeMarkers(markers, name)
