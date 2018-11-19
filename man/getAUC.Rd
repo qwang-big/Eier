@@ -30,5 +30,5 @@ Qi Wang
 \examples{
 data(markers)
 data(sample)
-getAUC(res$pg, markers$CLL)
+getAUC(res$pg$PC1, markers$CLL)
 }
