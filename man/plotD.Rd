@@ -42,5 +42,5 @@ Qi Wang
 }
 \examples{
 data(sample)
-plotD(res$Dobs, c('K4me1','K4me3','K27ac','Meth'), paste0(round(100*res$proj[2,], 2), "%"))
+plotD(res$Dobs, c('K4me1','K4me3','K27ac','Meth'), paste0(round(100*res$proj[2,], 2), '\%'))
 }
