@@ -12,6 +12,10 @@
   - Integrate several epigenetic marks
   - Incorporate enhancers
 
+With the help of *Irene*, user not only discover the genes which show significantly epigenetic alterations on their promoters, but also the ones which are connected with strong epigenetic modifications on neighbouring enhancers, which are presented as increased/decreased rankings (Fig. 1)
+![example bipartite graph](https://raw.githubusercontent.com/qwang-big/irene-web/master/images/irene_fig.jpg)
+*Fig. 1 Genes with more enhancer alterations have higher rank*
+
 The whole idea has been demonstrated in the Chapter III of Qi Wang's [dissertation](https://github.com/qwang-big/irene-web/blob/master/docs/chapter3.pdf). For the above purposes, we employed singular value decomposition [dPCA](http://www.biostat.jhsph.edu/~hji/dpca/) and random walk ranking [PageRank](http://igraph.org/r/doc/page_rank.html). The epigenetic alterations over genomic regulatory elements between two groups are presented as dPC scores and further to PageRank scores during solving the enhancer-promoter relationships. To begin with, *Irene* starts from the following data inputs. 
 
 # Installation
@@ -210,7 +214,10 @@ The Empirical Cumulative Distribution Function (ECDF) of the marker gene positio
 ```r
 plotRank(res$pg, markers$CLL)
 ```
-, where we use the CLL marker genes for this test, and the area under the curve (AUC) of each ranking list is described in the legend. 
+, where we use the CLL marker genes for this test are ordered along the positions of their rankings (Fig. 2), and the area under the curve (AUC) of each ranking list is described in the legend. 
+
+![cll roc fig](https://raw.githubusercontent.com/qwang-big/irene-web/master/images/irene_roc.jpg)
+*Fig. 2 CLL marker gene positions along the ROC curves*
 
 ## Network analysis of the enriched pathways of significant epigenetic alterated genes
 Network analysis groups highly-ranked genes according to known gene interaction database, and further searches clusters of genes in biological function databases. Here we loaded Human Protein Reference Database ([HPRD](http://www.hprd.org/)) for grouping genes: 
