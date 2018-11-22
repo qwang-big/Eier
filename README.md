@@ -217,6 +217,7 @@ plotRank(res$pg, markers$CLL)
 , where we use the CLL marker genes for this test are ordered along the positions of their rankings (Fig. 2), and the area under the curve (AUC) of each ranking list is described in the legend. 
 
 ![cll roc fig](https://raw.githubusercontent.com/qwang-big/irene-web/master/images/irene_roc.jpg)
+
 *Fig. 2 CLL marker gene positions along the ROC curves*
 
 ## Network analysis of the enriched pathways of significant epigenetic alterated genes
@@ -329,6 +330,13 @@ MIT
 
 # Supplymentary Info
 - <a id="bigwigaverageoverbed"></a> Constructing **data** object from BigWig files with *bigWigAverageOverBed*: 
+```r
+#download genomic coordinates of promoter and enhancers for reading
+download.file("https://raw.githubusercontent.com/qwang-big/irene-data/master/promenh.hg19.bed", "promenh.hg19.bed")
+meta <- data.frame(file=dir('.','*.bigWig'),group=1,dataset=1,stringsAsFactors=FALSE)
+mclapply(meta$file,function(f) system(paste0("./bigWigAverageOverBed ",f," promenh.hg19.bed ",f,".out")), mc.cores = 4)
+data <- matrix(unlist(lapply(meta$file,function(f) read.table(paste0(f,".out"),stringsAsFactors=FALSE)[,4])), ncol = nrow(meta), byrow = FALSE)
+```
 - <a id="fullcode">Full R code for all test cases.
 ```r
 library(irene)
