@@ -106,7 +106,7 @@ Read in the table containing file location, group, dataset information as a **da
 ```r
 data <- importBW(meta, bed)
 ```
-to import the density for each regions. *ImportBW* use an external C function from [libBigWig](https://github.com/dpryan79/libBigWig), which is compiled with *Irene* during installation. Its output is equivalent to using *bigWigAverageOverBed* if BigWig files were processed separately, which can be loaded with another [procedure](#bigwigaverageoverbed) instead. 
+to import the density for each regions. *ImportBW* use an external C function from [libBigWig](https://github.com/dpryan79/libBigWig), which is compiled with *Irene* during installation. Its output is equivalent to using *[bigWigAverageOverBed](http://hgdownload.soe.ucsc.edu/admin/exe/)* if BigWig files were processed separately, which can be loaded with another [procedure](#bigwigaverageoverbed) instead. 
 
 ## Filter out unspecific enhancers
 We only took the regions which are more likely to be true enhancers, therefore we use the following function to get the indices which overlapped with enhancer histone marks (H3K4me1 in the following case). The peaks identified by Roadmap Epigenetics Project were retrieved from [http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated](http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated), and run:
@@ -336,6 +336,7 @@ download.file("https://raw.githubusercontent.com/qwang-big/irene-data/master/pro
 meta <- data.frame(file=dir('.','*.bigWig'),group=1,dataset=1,stringsAsFactors=FALSE)
 mclapply(meta$file,function(f) system(paste0("./bigWigAverageOverBed ",f," promenh.hg19.bed ",f,".out")), mc.cores = 4)
 data <- matrix(unlist(lapply(meta$file,function(f) read.table(paste0(f,".out"),stringsAsFactors=FALSE)[,4])), ncol = nrow(meta), byrow = FALSE)
+rownames(data) <- read.table(paste0(meta$file[1],".out"),stringsAsFactors=FALSE)[,1]
 ```
 - <a id="fullcode">Full R code for all test cases.
 ```r
