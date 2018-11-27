@@ -21,6 +21,9 @@ Vector consists of the labels of each component in the D matrix.
 \item{file}{
 The filename of the csv file to be exported.
 }
+\item{check}{
+logical for checking the dependencies.
+}
 }
 
 \details{
@@ -32,5 +35,5 @@ Qi Wang
 }
 \examples{
 genes=list(marker=c("BRAF","KRAS","MYC","TP53"))
-exportApps("CLL", genes)
+exportApps("CLL", genes, check=FALSE)
 }

@@ -690,8 +690,8 @@ checkIntegrityFuns <- function(prefix) {
 		checkIntegrity(paste0(prefix, "pathways.json"), "exportJSONpathways")))
 }
 	
-exportApps <- function(name, markers=NULL, exdir = ".") {
-	if (!checkIntegrityFuns(name))
+exportApps <- function(name, markers=NULL, exdir = ".", check=TRUE) {
+	if (!check && !checkIntegrityFuns(name))
 		stop("Cannot export because the above dependencies have not be resolved.")
 	untar(system.file("data", "html.tar.gz", package="irene"), exdir = exdir)
 	writeIndexHtml(name, exdir)

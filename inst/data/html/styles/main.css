@@ -1,0 +1,22 @@
+#rbl {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#rbl td, #rbl th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#rbl tr:nth-child(even){background-color: #f3f3f3;}
+
+#rbl tr:hover {background-color: #ddd;}
+
+#rbl th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #CCC;
+    color: black;
+}

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Network enrichment</title>
+<style>
+	body{
+		font-family:"Helvetica","Arial";
+		padding:10px;
+	}
+	div.container{
+		width:1000px;
+		margin:0px auto;
+		background:"#F6F6F6";
+	}
+	div#instructions{
+		width:450px;
+		float:left;
+	}
+	div#filters{
+		width:450px;
+		float:right;
+	}
+	abbr{
+		font-weight:bold;
+		color:rgb(36,64,144);
+		border:1px solid rgb(36,64,144);
+		cursor:help;
+		font-size:80%;
+		padding:0px 2px 0px 2px;
+		float:right;
+		margin-left:30px;
+	}
+	div#figures{
+		padding:5px;
+		clear:both;
+	}
+	div#figures h3 small#stats{
+		float:right;
+		font-size:80%;
+	}
+	hr{
+		clear:both;
+		padding-bottom:0px;
+		margin:0px;
+		border:0;
+		border-bottom:1px solid #eee;
+	}
+	div#figures hr{
+		clear:both;
+		margin-top:30px;
+		border:0;
+		border-bottom:1px dashed #777777;
+	}
+	div#figures div.network{
+		width:800px;
+		float:left;
+	}
+	div#figures div.m2{
+		width:190px;
+		float:right;
+	}
+</style>
+</head>
+<body>
+<img src="loading.gif" id="loading" style="margin: auto; display: block"/>
+<div class="container">
+	<h1 id="htop"></h1>
+	<hr/>
+
+	<div id="figures">
+	</div>
+</div>
+<script type="text/javascript" src="js/d3.min.js"></script>
+<script type="text/javascript" src="js/queue.v1.min.js"></script>
+<script type="text/javascript" src="js/crl_utils.js"></script>
+<script>
+var heatFormat = d3.format(".3r");
+
+var tooltip = d3.select("body")
+	.append("div")
+	.style("position", "absolute")
+	.style("z-index", "10")
+	.style("visibility", "hidden")
+	.style("background-color", "#fff")
+	.style("font-size", "16px");
+
+// Create an object that contains any changes to the default styles 
+var styling = {
+	fontColor: '#34495E',
+	fontSize: 12,
+	heatLegendWidth: 300,
+	netLegendWidth: 90,
+	width: 800,
+	height: 800,
+	nodeRadius: 10,
+	strokeWidth: 4,
+	cold: 'rgb(102, 178, 255)',
+	hot: 'rgb(238,130,238)'
+}
+
+var dColor = d3.scale.linear()
+	  .domain([-1, 0, 1])
+	  .range(["#0c0", "#000", "#f30"])
+	  .nice();
+
+var col2 = ["#0000FF","#1A1AFF","#3333FF","#4D4DFF","#6666FF","#8080FF","#9999FF",
+"#B3B3FF","#CCCCFF","#E6E6FF","#FFFFFF","#FFE6E6","#FFCCCC","#FFB3B3",
+"#FF9999","#FF8080","#FF6666","#FF4D4D","#FF3333","#FF1A1A","#FF0000"]
+
+var rank, dPCs=[], eigenVec=[], pathways = [], circles = [], settings = {low:0, high:0, nrank:17888}, params=getParameterMap(), sample = params['sample'], ref = ("ref" in params)?"-"+params["ref"]:""
+
+// gd3 subnetwork function
+function subnetwork(params) {
+  var params = params || {},
+	  style  = params.style || {},
+	  colorSchemes = style.colorSchemes || {};
+
+  var cold = style.cold || 'rgb(102, 178, 255)',
+	  edgeWidth = style.edgeWidth || 1.5,
+	  fontColor = style.fontColor || '#333',
+	  fontFamily = style.fontFamily || '"Helvetica","Arial"',
+	  fontSize = style.fontSize || 10,
+	  heatLegendHeight = style.heatLegendHeight || 30,
+	  heatLegendWidth = style.heatLegendWidth ||  100,
+	  height = style.height || 200,
+	  hot = style.hot || 'rgb(255, 51, 51)',
+	  margins = style.margins || {bottom: 0, left: 0, right: 0, top: 0},
+	  netLegendBox = style.netLegendBox || 15,
+	  netLegendWidth = style.netLegendWidth || 200,
+	  nodeRadius = style.nodeRadius || 10,
+	  strokeWidth = style.strokeWidth || 1.5,
+	  transitionTime = style.transitionTime || 500,
+	  width = style.width || 350;
+
+  var showNetworkLegend = false,
+	  showGradientLegend = false;
+
+  function chart(selection) {
+	selection.each(function(data) {
+	  //////////////////////////////////////////////////////////////////////////
+	  // General setup
+	  var edges = data.edges,
+		  nodes = data.nodes;
+
+	  // Select the svg element, if it exists.
+	  var fig = d3.select(this)
+		  .selectAll('svg')
+		  .data([data])
+		  .enter()
+			.append('svg');
+
+	  fig.attr('id', 'figure')
+		  .attr('height', height + margins.top + margins.bottom)
+		  .attr('width', width)
+		  .style('font-family', fontFamily)
+		  .style('font-size', fontSize);
+
+	  // Create the color scale
+	  var color = d3.scale.linear()
+			  .domain([0.9*settings.nrank|0, settings.nrank])
+			  .range(["#fff", hot])
+			  .nice();
+
+	  // Set up the force directed graph
+	  var force = d3.layout.force()
+		  .charge(-800)
+		  .linkDistance(80)
+		  .size([width, height]);
+
+	  // This drag function fixes nodes in place once they are dragged
+	  var drag = force.drag().on('dragstart', function(d) {
+		d.fixed = true;
+		d3.select(this).select('circle').style('stroke-opacity', 0);
+	  });
+
+	  // Set up scales
+	  var x = d3.scale.linear().range([0, width]),
+		  y = d3.scale.linear().range([0, height]);
+
+	  var links = loadLinks(edges, nodes);
+
+	  force.nodes(nodes)
+		  .links(links)
+		  .start();
+
+	  // Determine which networks are in the data
+	  var networks = [];
+	  for (var i = 0; i < links.length; i++) {
+		for (var j = 0; j < links[i].networks.length; j++) {
+		  if (networks.indexOf(links[i].networks[j]) == -1) {
+			networks.push(links[i].networks[j]);
+		  }
+		}
+	  }
+
+	  var numNets = networks.length,
+		  netLegendHeight = numNets * 10;
+
+	  // Make sure each network has a color
+	  if (colorSchemes.network == undefined) {
+		var colors = d3.scale.category20();
+		colorSchemes.network = {};
+		for (var i = 0; i < networks.length; i++) {
+		  colorSchemes.network[networks[i]] = colors(i);
+		}
+	  }
+
+	  // Draw the edges
+	  var link = fig.selectAll('.link')
+		  .data(links);
+
+	  var linkInNetwork = {},
+		  activeNetworks = {};
+
+	  for (var i = 0; i < networks.length; i++) {
+		var net = networks[i],
+			netName = net.split('.').join('');
+			netColor = colorSchemes.network[networks[i]];
+			activeNetworks[net] = true;
+
+		var inNet = fig.selectAll('.' + netName)
+				.data(links.filter(function (link) {
+				  return link.networks && link.networks.indexOf(net) != -1;
+				}))
+				.enter()
+				.append('line')
+				  .classed(netName, true)
+				  .style('stroke-width', edgeWidth)
+				  .style('stroke', netColor);
+
+			linkInNetwork[net] = inNet;
+	  }
+
+	  // Draw the nodes
+	  // Keep the circles and text in the same group for better dragging
+	  var circle = fig.append('svg:g')
+		  .selectAll('node')
+		  .data(nodes)
+		  .enter()
+		  .append('svg:g')
+		  .style('cursor', 'move')
+		  .call(force.drag)
+		  .on('dblclick', function(d) {
+		        d.fixed = d.fixed ? false : true;
+		        d3.select(this).select('path').style('stroke-opacity', 1);
+		  })
+		  .on('click', function(d) {
+		        showinfo(d, params.index)
+		  })
+		  .on("mouseover", function(d) {
+		        showtooltip('PromEnh: '+rank2p(rank[d.name].rank)+'%<br>PromOnly: '+rank2p(rank[d.name].rank2)+'%');
+		        return tooltip.style("visibility", "visible");
+		  })
+		  .on("mousemove", function(){
+		        return tooltip.style("top", (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");
+		  })
+		  .on("mouseout", function(){
+		        return tooltip.style("visibility", "hidden");
+		  });
+
+	  circle.append('path')
+		  .attr("d", d3.svg.symbol()
+		    .type(function(d) { return d3.svg.symbolTypes[3];  })
+		    .size(function(d) { return nodeRadius*nodeRadius*4 }))
+		  .attr('fill', function(d) {return color(rank[d.name].rank); })
+		  .style('stroke-width', strokeWidth)
+		  //.style('opacity', function(d) {return fillopacity(d, params.index);})
+		  .style('stroke', function(d) {
+        if (!(params.index in pathways)) return '#000';
+        return pathways[params.index].genes[0].indexOf(d.name)>=0?"#f00":'#000'
+      });
+
+	  circle.append('rect')
+	      .attr("x", 0)
+	      .attr("width", nodeRadius -strokeWidth/2)
+	      .attr("y", nodeRadius * (-1) +strokeWidth/2)
+	      .attr("height", nodeRadius * 2 -strokeWidth)
+	      .attr('fill', function(d) { return color(rank[d.name].rank2); })
+
+	  circle.append('text')
+		  .attr('x', nodeRadius)
+		  .attr('y', '.31em')
+		  .style('fill', fontColor)
+		  .style('font-size', fontSize)
+		  .text(function(d) { return d.name; });
+
+	  // Make sure nodes don't go outside the borders of the SVG
+	  force.on('tick', function() {
+		circle.attr('transform', function(d) {
+		  d.x = Math.max(nodeRadius, Math.min(width - nodeRadius, d.x));
+		  d.y = Math.max(nodeRadius, Math.min(height - nodeRadius, d.y));
+		  return 'translate(' + d.x + ',' + d.y + ')';
+		});
+		circles[params.index] = circle
+
+		networks.forEach(function(net, i) {
+		  var offset = edgeWidth * (i = numNets / 2);
+		  linkInNetwork[net]
+			  .attr('x1', function(d) { return d.source.x + offset; })
+			  .attr('y1', function(d) { return d.source.y + offset; })
+			  .attr('x2', function(d) { return d.target.x + offset; })
+			  .attr('y2', function(d) { return d.target.y + offset; });
+		});
+	  }); // end force
+
+	  //////////////////////////////////////////////////////////////////////////
+	  // DRAW LEGENDS
+	  function renderNetworkLegend() {
+		var netLegend = fig.selectAll(".net-group")
+			.data(networks).enter()
+			.append("g")
+				.style("font-size", 12)
+				.on("click", function(n){
+					var active = activeNetworks[n];
+					activeNetworks[n] = !active;
+					linkInNetwork[n].transition().duration(transitionTime)
+						.style("stroke-opacity", active ? 0 : 1);
+
+					d3.select(this).transition().duration(transitionTime)
+						.style("stroke-opacity", active ? 0.5 : 1)
+						.style("fill-opacity", active ? 0.5 : 1);
+				});
+
+		netLegend.append("line")
+			.attr("x1", 0)
+			.attr("x2", netLegendBox)
+			.style("stroke-width", edgeWidth)
+			.style("stroke", function(n){ return colorSchemes.network[n]; });
+
+		netLegend.append("text")
+			.attr("x", 8 + netLegendBox)
+			.attr("y", 3)
+			.text(function(n){ return n; });
+
+		netLegend.attr("transform", function(d, i){
+			return "translate(" + (width-d3.select(this).node().getBBox().width) + "," + ((i+1)*netLegendBox) + ")";
+		})
+
+	  } // end renderNetworkLegend()
+
+	  function renderGradientLegend() {
+		var heatLegend = selection.append('div')
+			.attr('id', 'subnetwork-legend')
+			.style('width', heatLegendWidth + 'px');
+
+		var gradient = heatLegend.append('svg')
+			.attr('width', heatLegendWidth)
+			.attr('height', heatLegendHeight);
+
+		// Create a unique ID for the heat gradient
+		var gradientID = 'heat_gradient' + Date.now();
+		gradient.append('svg:defs')
+			.append('svg:linearGradient')
+			  .attr('x1', '0%')
+			  .attr('y1', '0%')
+			  .attr('x2', '100%')
+			  .attr('y2', '0%')
+			  .attr('id', gradientID)
+			  .call(function (gradient) {
+		//		gradient.append('svg:stop')
+		//		  .attr('offset', '0%')
+		//		  .attr('style', 'stop-color:' + cold + ';stop-opacity:1');
+				gradient.append('svg:stop')
+				  .attr('offset', '0%')
+				  .attr('style', 'stop-color:#fff;stop-opacity:1');
+				gradient.append('svg:stop')
+				  .attr('offset', '100%')
+				  .attr('style', 'stop-color:' + hot + ';stop-opacity:1');
+			  });
+
+		gradient.append('rect')
+			.attr('width', heatLegendWidth)
+			.attr('height', heatLegendHeight)
+			.style('fill', 'url(#' + gradientID + ')');
+
+		var labels = heatLegend.append('div')
+			.style('clear', 'both');
+		var format = d3.format("g");
+		
+		heatLegend.append('span')
+		  .style('float', 'left')
+		  .text("10%")
+		  //.text(heatFormat(d3.min(heatRange)));
+
+		heatLegend.append('span')
+		  .style('float', 'right')
+		  .text("0%")
+		  //.text(heatFormat(d3.max(heatRange)));
+		  
+	  } // end renderGradientLegend()
+
+	  if(showNetworkLegend) {
+		renderNetworkLegend();
+	  }
+	  if(showGradientLegend) {
+		renderGradientLegend();
+	  }
+	  
+	  //////////////////////////////////////////////////////////////////////////
+	  // UTILITY FUNCTIONS
+	  // Returns list of links between a given set of nodes and an edge list
+	  function loadLinks(edges, nodes) {
+		var links = [];
+
+		for (var i = 0; i < nodes.length; i++) {
+		  var u = nodes[i].name;
+		  for(var j = 0; j < nodes.length; j++) {
+			var v = nodes[j].name;
+			for (var k = 0; k < edges.length; k++) {
+			  var src = edges[k].source,
+				  tgt = edges[k].target;
+			  if ( (u == src && v == tgt) || (u == tgt && v == src) ) {
+				links.push({
+				  'source': nodes[i],
+				  'target': nodes[j],
+				  'weight': edges[k].weight,
+				  'networks': edges[k].networks
+				})
+			  }
+			}
+		  }
+		}
+
+		return links;
+	  } // end loadLinks()
+	});
+  } // end chart()
+
+
+  chart.addNetworkLegend = function () {
+	showNetworkLegend = true;
+	return chart;
+  }
+
+  chart.addGradientLegend = function () {
+	showGradientLegend = true;
+	return chart;
+  }
+
+  return chart;
+}
+
+function drawMain(error, json, dpc, pathway, prcomp, rankdata) {
+	d3.select("#loading").style("display", "none")
+	var fig = d3.select("#figures")
+	setPCs(dpc,500000)
+	setRanks(rankdata)
+	settings.nrank = Object.keys(rank).length
+  pathways = pathway
+	eigenVec = prcomp
+	// Remove the old subnetworks
+	fig.selectAll("div").remove()
+  d3.select("#htop").text("Top "+json.subnetworks.length+" densely connected subnetworks by gene ranking")
+
+	// Add each subnetwork as an SVG wrapped in a div
+	json.subnetworks.forEach(function(d, i){
+		div = fig.append("div")
+    div.append("span").text("Pathways:").style("margin-right", "5px")
+    sel = div.append("select")
+      sel.datum(i)
+      .on("change", function(i) {
+        j = d3.select(this).property("value")
+		    circles[i].select('path').style('stroke', function(d) {
+          if (!(i in pathways)) return '#000';
+		      return pathways[i].genes[j].indexOf(d.name)>=0?"#f00":'#000'
+		    })
+      })
+	    .style("width", "450px")
+      .selectAll('option')
+      .data(i in pathways?pathways[i].pathways:["no enrichment"]).enter()
+	    .append("option")
+	    .attr("value", function(d, i){ return i})
+	    .text(function(d,j){ return d+" "+shortd(pathways[i].pvals[j])})
+    sel.property("selectedIndex",pathways[i].sel)
+
+		div.append("span").style("margin-left", "5px")
+		  .append("a")
+		  .attr("download", "subnetworks"+i+".txt")
+		  .attr("href", window.URL.createObjectURL(new Blob([getNetstr(d, i)], {type: 'text/plain'})))
+		  //.style("font-size", "75%")
+		  .text("Download as text file")
+
+		var g = fig.append("div").attr("id", "subnetwork"+i)
+					.attr("class", "subnetwork k" + d.nodes.length);
+
+		g.append("div")
+			.datum(d)
+			.attr("id", "network"+i)
+			.attr("class", "network")
+			.call(
+				subnetwork({style: styling, index: i})
+					.addNetworkLegend()
+					.addGradientLegend()
+	  		);
+
+	  	g.append("div")
+			.attr("id", "info"+i)
+			.attr("class", "m2")
+			.style("margin-bottom", "30px")
+	  	g.append("hr");
+	});
+
+}
+
+queue()
+	.defer(d3.json, sample+'nets'+ref+'.json')
+	.defer(d3.csv, sample+'seq.csv')
+	.defer(d3.json, sample+'pathways'+ref+'.json')
+	.defer(d3.csv, sample+'comp.csv')
+	.defer(d3.csv, sample+'rank.csv')
+	.await(drawMain);
+</script>
+</body>
+</html>

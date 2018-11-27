@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Epigenome heatmap</title>
+    <meta HTTP-EQUIV="X-UA-COMPATIBLE" CONTENT="IE=EmulateIE9" >
+    <script type="text/javascript" src="js/d3.min.js"></script>
+    <script type="text/javascript" src="js/queue.v1.min.js"></script>
+    <script type="text/javascript" src="js/d3.autocomplete.js"></script>
+    <script type="text/javascript" src="js/crl_utils.js"></script>
+
+<script>
+    var curMap, scale=1, names = [], ids = [], data = [], TAD = [], dPC = [], genes = [], inta=[], intc, params=getParameterMap();
+var sample = params['sample']
+var code = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+var cols = ["#BEBEBE","#C0C0C0","#C2C2C2","#C5C5C5","#C7C7C7","#C9C9C9","#CBCBCB",
+"#CDCDCD","#CFCFCF","#D2D2D2","#D4D4D4","#D6D6D6","#D8D8D8","#DADADA",
+"#DCDCDC","#DFDFDF","#E1E1E1","#E3E3E3","#E5E5E5","#E7E7E7","#E9E9E9",
+"#ECECEC","#EEEEEE","#F0F0F0","#F2F2F2","#F4F4F4","#F6F6F6","#F9F9F9",
+"#FBFBFB","#FDFDFD","#FFFFFF","#FFF7F7","#FFEEEE","#FFE6E6","#FFDDDD",
+"#FFD5D5","#FFCCCC","#FFC4C4","#FFBBBB","#FFB3B3","#FFAAAA","#FFA2A2",
+"#FF9999","#FF9191","#FF8888","#FF8080","#FF7777","#FF6F6F","#FF6666",
+"#FF5E5E","#FF5555","#FF4D4D","#FF4444","#FF3C3C","#FF3333","#FF2B2B",
+"#FF2222","#FF1A1A","#FF1111","#FF0909","#FF0000"]
+var col2 = ["#0000FF","#1A1AFF","#3333FF","#4D4DFF","#6666FF","#8080FF","#9999FF",
+"#B3B3FF","#CCCCFF","#E6E6FF","#FFFFFF","#FFE6E6","#FFCCCC","#FFB3B3",
+"#FF9999","#FF8080","#FF6666","#FF4D4D","#FF3333","#FF1A1A","#FF0000"]
+var jsonUrl = params.hasOwnProperty("json") ? "&datahub="+params.json : "";
+var epggUrl = "http://epigenomegateway.wustl.edu/browser/?genome=hg19";
+
+    function drawMain(error, args) {
+			trackname = args[0], seq = args[1], tad = args[2]
+			for (var i in trackname) {
+			    names.push(trackname[i].x)
+			}
+			for (var i in seq) {
+					id = parseInt(seq[i].id)
+			    dPC[id] = parseFloat(seq[i].PC1)
+			    data[id] = seq[i].data
+			    ids[id] = seq[i].name
+					if (seq[i].name.indexOf('_')>0) {
+						geneName = seq[i].name.substr(0,seq[i].name.indexOf('_'))
+						genes.push({name:geneName, chr:seq[i].seqnames, start:parseInt(seq[i].start), end:parseInt(seq[i].end), id:id})
+					}
+			}
+			for (var i in tad) {
+      	for(var j=tad[i].id; j<tad[i].id2; j++)
+					TAD[j] = parseInt(i)
+			}
+			d3.select("#loading").style("display", "none")
+			d3.select("#geneprompt").style("display", "block")
+      setAutocomplete();
+      setSelected();
+			if (jsonUrl != "")
+				d3.select("#dmore").style("visibility", "visible");
+			if (args.length <5) return;
+      int = args[3], intj = args[4]
+      for(var i=0; i<intj.Prom.length; i++) {
+        inta[intj.Prom[i]] = []
+        for(var j=0; j<intj.Type.length; j++) {
+          inta[intj.Prom[i]][j] = []
+        }
+      }
+			for (var i in int) {
+        inta[intj.Prom[int[i].P]][int[i].T].push(int[i].E)
+      }
+			intc = intj
+      intc.sel = intc.DefaultType
+      sel = d3.select("#intcsel")
+        sel.datum(intc.Type)
+        .on("change", function(i) {
+          intc.sel = d3.select(this).property("value")
+		      heatmapImpl()
+        })
+	      .style("width", "300px")
+        .selectAll('option')
+        .data(intc.Type).enter()
+	      .append("option")
+	      .attr("value", function(d, i){ return i})
+	      .text(function(d){ return d})
+      sel.property("selectedIndex",intc.DefaultType)
+    }
+
+    function setSelected() {
+        if (!("gene" in params)) return;
+        for(var i in genes) {
+            if (genes[i].name === params["gene"])
+                return heatmap(genes[i])
+        }
+    }
+    //Call back for when user selects an option
+    function onSelect(d) {
+        heatmap(d)
+			if (inta.hasOwnProperty(d.name) && inta[d.name].length>0)
+				d3.select("#csel").style("visibility", "visible")
+    }
+
+    //Setup and render the autocomplete
+    function setAutocomplete() {
+        var mc = autocomplete(document.getElementById('geneprompt'))
+                .keys(genes)
+                .dataField("name")
+                .placeHolder("Type gene name here")
+                .width(960)
+                .height(500)
+                .onSelected(onSelect)
+                .render();
+    }
+
+q = queue()
+	q.defer(d3.csv, sample+'name.csv')
+	q.defer(d3.csv, sample+"seq.csv")
+	q.defer(d3.csv, "tad.csv")
+	if("int" in params) {
+	q.defer(d3.csv, params["int"]+"int.csv")
+	q.defer(d3.json,params["int"]+"int.json")
+	}
+	q.awaitAll(drawMain);
+</script>
+    <link rel="stylesheet" href="fonts/bariol/bariol.css"/>
+    <link rel="stylesheet" href="styles/style.css"/>
+
+</head>
+
+<body>
+
+<img src="loading.gif" id="loading" style="margin: auto; display: block"/>
+<div id="geneprompt" style="width:100%; height:30px; display: none">
+<a href="javascript:void(0)" title="zoom in" onclick="return zoomIn()">+&nbsp;</a>
+<a href="javascript:void(0)" title="zoom out" onclick="return zoomOut()">&#8211;</a>
+<span id="legend"></span>
+<span id="legend2"></span>
+<span>TADs: <svg width="40" height="20"><rect x="0" y="0" width="20" height="20" fill="#fc0"></rect><rect x="20" y="0" width="20" height="20" fill="#c0f"></rect></svg></span>
+<span id="csel" style="visibility: hidden"><select id="intcsel"></select></span>
+<img id="dmore" src="dmore.gif" style="position: absolute; left:1500px; visibility: hidden"/>
+</div>
+<div id="tooltip" style="position:absolute; z-index:10; visibility:hidden; font-size:16px; background-color:#fff"></div>
+<div id="heatmap" style="width:100%; height:100%;"></div>
+
+</body>
+
+</html>
+

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ranking lists</title>
+    <style type="text/css">
+      .axis {
+        font: 10px sans-serif;
+      }
+      .axis-title {
+        text-anchor: end;
+      }
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+      .axis--x path {
+        display: none;
+      }
+      .axis--y .tick:not(.tick--one) line {
+        stroke-opacity: .15;
+      }
+      .line {
+        fill: none;
+        stroke: steelblue;
+        stroke-width: 1.5px;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+      }
+    </style>
+    <script type="text/javascript" src="js/d3.min.js"></script>
+    <script type="text/javascript" src="js/queue.v1.min.js"></script>
+    <script type="text/javascript" src="js/d3.autocomplete.js"></script>
+    <script type="text/javascript" src="js/crl_utils.js"></script>
+  </head>
+  <body>
+
+	<img src="loading.gif" id="loading" style="margin: auto; display: block"/>
+    <div id="chart" style="position:absolute;width:900px;display:none"></div>
+    <div style="position:relative;left:900px;width:400px">
+<div id="lists"></div>
+<div id="info0"></div>
+<div id="geneprompt"></div>
+</div>
+
+<div id="tooltip" style="position:absolute; z-index:10; visibility:hidden; font-size:16px; background-color:#fff"></div>
+
+    <script type="text/javascript">
+var col2 = ["#0000FF","#1A1AFF","#3333FF","#4D4DFF","#6666FF","#8080FF","#9999FF",
+"#B3B3FF","#CCCCFF","#E6E6FF","#FFFFFF","#FFE6E6","#FFCCCC","#FFB3B3",
+"#FF9999","#FF8080","#FF6666","#FF4D4D","#FF3333","#FF1A1A","#FF0000"]
+var width = 900, height = 900, margin = 50, rank, srclist=[], genesrc=[], highlights=[], dPCs=[], eigenVec=[], settings = {low:0, high:0, nrank:17888}, params=getParameterMap(), sample = params['sample']
+var tooltip = d3.select("#tooltip")
+  var chart = d3.select("#chart")
+    .append("svg:svg")
+    .attr("class", "chart")
+    .attr("width", width)
+    .attr("height", height);
+  var y = d3.scale.linear()
+    .domain([1,17888])
+    .range([height-margin, margin]);
+  var x = d3.scale.linear()
+    .domain([1,17888])
+    .range([margin,width-margin]);
+
+  chart.selectAll("line.x")
+   .data(x.ticks(10))
+   .enter().append("svg:line")
+   .attr("class", "x")
+   .attr("x1", x)
+   .attr("x2", x)
+   .attr("y1", margin)
+   .attr("y2", height - margin)
+   .attr("stroke", "#ccc");
+
+  chart.selectAll("line.y")
+   .data(y.ticks(10))
+   .enter().append("svg:line")
+   .attr("class", "y")
+   .attr("x1", margin)
+   .attr("x2", width - margin)
+   .attr("y1", y)
+   .attr("y2", y)
+   .attr("stroke", "#ccc");
+
+  chart.selectAll("text.xrule")
+   .data(x.ticks(10))
+   .enter().append("svg:text")
+   .attr("class", "xrule")
+   .attr("x", x)
+   .attr("y", height - margin)
+   .attr("dy", 20)
+   .attr("text-anchor", "middle")
+   .text(String);
+
+ chart.selectAll("text.yrule")
+  .data(y.ticks(10))
+  .enter().append("svg:text")
+  .attr("class", "yrule")
+  .attr("x", width - margin+1)
+  .attr("y", y)
+  .attr("dy", 0)
+  .attr("dx", 20)     
+  .attr("text-anchor", "middle")
+  .text(String);
+
+ /*chart.selectAll("text.yrule2")
+  .data(y.ticks(10))
+  .enter().append("svg:text")
+  .attr("class", "yrule")
+  .attr("x", 1)
+  .attr("y", y)
+  .attr("dy", 0)
+  .attr("dx", 20)     
+  .attr("text-anchor", "middle")
+  .text(String);*/
+
+  chart.append("svg:rect")
+  .attr("x", margin)
+  .attr("y", margin)      
+    .attr("width", width - margin*2)
+    .attr("height", height - margin*2)
+    .attr("fill-opacity",0)
+    .attr('stroke', '#000')
+    .attr('stroke-width',1)
+
+    chart.append('text')
+    .attr('x',4)
+    .attr('y',height/4)
+    .text("Low significance <- - - - - - - - - - Promoter only - - - - - - - - - -> High significance")
+  .attr("transform", "translate(-210,750) rotate(-90 0 0)")
+    .style("font-size", "16px")
+
+    chart.append('text')
+    .attr('x',width/4 - margin)
+    .attr('y',height-4)
+    .text("Low significance <- - - - - - - - - - Promoter + Enhancer - - - - - - - - - -> High significance")
+    .style("font-size", "16px")
+
+function drawMain(error,data,dpc,prcomp,markergene){
+	d3.select("#loading").style("display", "none")
+	eigenVec = prcomp
+	setPCs(dpc,500000)
+	setRank2(data)
+	plotPt(rank);
+	makelist(markergene)
+	d3.select("#chart").style("display", "block")
+	setAutocomplete()
+}
+
+//Call back for when user selects an option
+function onSelect(d) {
+	highlightgene(d)
+}
+
+//Setup and render the autocomplete
+function setAutocomplete() {
+	var mc = autocomplete(document.getElementById('geneprompt'))
+        .keys(rank)
+        .dataField("name")
+        .placeHolder("Type gene name here")
+        .width(100)
+        .margin({top: 10, left: 10+width})
+        .onSelected(onSelect)
+        .render();
+}
+
+queue()
+	.defer(d3.csv, sample+'rank.csv')
+	.defer(d3.csv, sample+'seq.csv')
+	.defer(d3.csv, sample+'comp.csv')
+	.defer(d3.csv, sample+'marker.csv')
+	.await(drawMain);
+
+    </script>
+  </body>
+</html>
