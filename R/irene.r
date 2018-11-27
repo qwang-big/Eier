@@ -502,11 +502,14 @@ writeData <- function(data, groupLabels, prefix, n=61, width=2000, name=NULL, in
   data <- apply(data, 1, function(i) paste0(i,collapse=""))
   write.csv(name[ix], file=paste0(filename,'name.csv'), quote=FALSE, row.names = FALSE)
   write.csv(cbind(id=overlapWins(gr, width), gr, name=id, dpc, data), file=paste0(filename,'seq.csv'), quote=FALSE, row.names = FALSE)
-  if (intTemp){
-  writeLines('{"Prom":[],"Enh":[],"DefaultType":0,"Type":["no capture Hi-C data available"]}',con=paste0(filename,'int.json'))
-  writeLines('P,E,T',con=paste0(filename,'int.csv'))}
+  if (intTemp) writeTempInteractions(filename)
 }
 
+writeTempInteractions <- function(filename) {
+  writeLines('{"Prom":[],"Enh":[],"DefaultType":0,"Type":["no capture Hi-C data available"]}',con=paste0(filename,'int.json'))
+  writeLines('P,E,T',con=paste0(filename,'int.csv'))
+}
+	
 overlapWins <- function(gr, width=2000) {
   findOverlaps(makeGRangesFromDataFrame(gr),makeBedWins(gr, width=width),select="first")
 }
@@ -668,11 +671,31 @@ writeLines(paste0('<!DOCTYPE html><html><head><title>',name,'</title><link rel="
 "<tr>",.tblNode("stat",name,name),paste0(sapply(c("net","browse","rank","roc"), function(d) .tblNode(d, name)),collapse=''),"</tr></table></body></html>",collapse=''), con=paste0(exdir,'/index.html'))
 }
 
+checkIntegrity <- function(name, fun) {
+	if(!file.exists(name)) {
+		cat(paste0('Please run "',fun,'" first.\n'))
+		return(FALSE)
+	}
+	return(TRUE)
+}
+
+checkIntegrityFuns <- function(prefix) {
+	all(c(checkIntegrity(paste0(prefix, "comp.csv"), "exportD"),
+		checkIntegrity(paste0(prefix, "marker.csv"), "writeMarkers"),
+		checkIntegrity(paste0(prefix, "meta.csv"), paste0('write.csv(meta,"',prefix,'meta.csv")')),
+		checkIntegrity(paste0(prefix, "name.csv"), "writeData"),
+		checkIntegrity(paste0(prefix, "rank.csv"), "writeRank"),
+		checkIntegrity(paste0(prefix, "seq.csv"), "writeData"),
+		checkIntegrity(paste0(prefix, "nets.json"), "exportJSONnets"),
+		checkIntegrity(paste0(prefix, "pathways.json"), "exportJSONpathways")))
+}
+	
 exportApps <- function(name, markers=NULL, exdir = ".") {
+	if (!checkIntegrityFuns(name))
+		stop("Cannot export because the above dependencies have not be resolved.")
 	untar(system.file("data", "html.tar.gz", package="irene"), exdir = exdir)
 	writeIndexHtml(name, exdir)
 	if (!is.null(markers)) {
 		writeMarkers(markers, name)
 	}
-
 }

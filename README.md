@@ -265,6 +265,11 @@ Write the normalized epigenome signals of the two groups, labels of the two grou
 writeData(res$gr, c("CLL", "Bcell"), prefix)
 ```
 
+Export the principal components of epigenetic marks
+```r
+exportD(res$Dobs, c('K4me1','K4me3','K27ac','Meth'), "CLL")
+```
+
 , and the sub-networks list was saved to a JSON with each network structure: 
 ```r
 exportJSONnets(res$gs, prefix)
@@ -277,7 +282,7 @@ exportJSONpathways(res$ga, prefix, n=15)
 
 Finally, create an index page in the same directory with above JSON files for visualizing in an internet browser:
 ```r
-exportApps(prefix)
+exportApps(prefix, markers['CLL'])
 ```
 
 # Interpreting the results
