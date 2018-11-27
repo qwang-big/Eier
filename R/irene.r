@@ -691,7 +691,7 @@ checkIntegrityFuns <- function(prefix) {
 }
 	
 exportApps <- function(name, markers=NULL, exdir = ".", check=TRUE) {
-	if (!check && !checkIntegrityFuns(name))
+	if (check && !checkIntegrityFuns(name))
 		stop("Cannot export because the above dependencies have not be resolved.")
 	untar(system.file("data", "html.tar.gz", package="irene"), exdir = exdir)
 	writeIndexHtml(name, exdir)
