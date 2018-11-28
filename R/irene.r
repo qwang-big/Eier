@@ -38,27 +38,23 @@ readBED <- function(file){
     GRanges(Rle(bed[,1]), IRanges(as.integer(bed[,2]), as.integer(bed[,3])), id=paste0(bed[,1],'_',bed[,2],'_',bed[,3]))
 }
 
-filterPeak <- function(files, ref, group=NULL, filter = c("both", "enhancer", "promoter")){
+filterPeak <- function(files, ref, group=NULL, data=NULL, filter = c("enhancer", "promoter", "both")){
   filter = match.arg(filter)
   i <- c()
-  if (class(ref)=="data.frame") {
-    bed = ref
+  j <- c()
+  if (class(ref)=="data.frame")
     ref = readBED(ref)
-    if (filter=="promoter")
-      i <- which(isEnh(bed[,4]))
-    if (filter=="enhancer")
-      i <- which(!isEnh(bed[,4]))
-  } else {
-    if (filter=="promoter")
-      i <- which(isEnh(ref$id))
-    if (filter=="enhancer")
-      i <- which(!isEnh(ref$id))
-  }
+  if (filter=="promoter")
+    i <- which(isEnh(ref$id))
+  else if (filter=="enhancer")
+    i <- which(!isEnh(ref$id))
   if (is.null(group))
     region <- combineRgn(files)
   else
     region <- combineGrpRgn(files, group)
-  unique(c(i, which(ref$id %in% filterRgn(region, ref)$id)))
+	if (data != NULL)
+		j <- which(apply(data,1,function(d) sd(d)==0))
+  setdiff(unique(c(i, which(ref$id %in% filterRgn(region, ref)$id))), j)
 }
 
 combineRgn <- function(files) {
@@ -531,9 +527,10 @@ makeBedWins <- function(bed, width=2000) {
 .any <- function(x, n) .lw(x)>=n
 
 dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, transform=NULL, normlen=NULL, minlen=50, lambda=0.15, fun=function(x) sqrt(mean(x^2)), datasetLabels=NULL, groupLabels=NULL, qnormalize=TRUE, qnormalizeFirst=FALSE, normalize=FALSE, verbose=FALSE, interactive=FALSE, useSVD=FALSE, saveFile=FALSE, processedData=TRUE, removeLowCoverageChIPseq=FALSE, removeLowCoverageChIPseqProbs=0.1, dPCsigns=NULL, nPaired=0, nTransform=0, nColMeanCent=0, nColStand=0, nMColMeanCent=1, nMColStand=0, dSNRCut=5, nUsedPCAZ=0, nUseRB=0, dPeakFDRCut=0.5) {
-  #if (class(bed)=="data.frame")
-  #  bed = readBED(bed)
-  #data = data[match(bed[,4],rownames(data)),]
+  if (class(bed)!="data.frame")
+  	stop("Please input genomic regions (bed) as data.frame")
+	if (!any(is.na(match(bed[,4],rownames(data)))) && !all(rownames(data)==bed[,4]))
+		data = data[match(bed[,4],rownames(data)),]
   colnames(bed) <- c("seqnames","start","end","id")
   datac <- as.character(meta[,'file'])
   if (!is.null(datasets)) {
@@ -596,6 +593,8 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
   if (qnormalizeFirst) {
     data <- normalize.quantiles(data)
   }
+	if (min(data) <= 0)
+		data <- data - min(data) + 1e-5
   if (!is.null(transform)) {
     wId <- which(meta[,'dataset'] %in% transform)
     tdata <- apply(data,2,function(tmp){
@@ -609,7 +608,7 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
   }
   if (removeLowCoverageChIPseq) {
     med <- min(data)
-    data[!qi,] <- runif(ncol(data), med-0.00001, med)
+    data[!qi,] <- runif(ncol(data), med - 1e-5, med)
   }
   if (!qnormalizeFirst & qnormalize) {
     data <- normalize.quantiles(data)
@@ -673,7 +672,7 @@ writeLines(paste0('<!DOCTYPE html><html><head><title>',name,'</title><link rel="
 
 checkIntegrity <- function(name, fun) {
 	if(!file.exists(name)) {
-		cat(paste0('Please run "',fun,'" first.\n'))
+		cat(paste0('"',name,'" not found, please run "',fun,'" first.\n'))
 		return(FALSE)
 	}
 	return(TRUE)

@@ -7,7 +7,7 @@ Filter Peak Sets
 Filter peak sets with reference genomic regions
 }
 \usage{
-filterPeak(files, ref, group, filter)
+filterPeak(files, ref, group, data, filter)
 }
 
 \arguments{
@@ -20,6 +20,9 @@ Data.frame of reference genomic regions needed to be filtered.
 }
 \item{group}{
 Vector of groups used to combine the regions, this must be of the same length to the vector of filenames. If groups is set to NULL, \code{\link{combineRgn}} will be called instead of \code{\link{combineGrpRgn}}. 
+}
+\item{data}{
+Data.frame or matrix which contains the intensity data for each input genomic regions. If provided, the function further discards the genomic regions having zero-variance between groups. 
 }
 \item{filter}{
 Vector of which type of genomic regions to filter, the value must be one of "enhancer", "promoter" or "both".
