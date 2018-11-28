@@ -52,7 +52,7 @@ filterPeak <- function(files, ref, group=NULL, data=NULL, filter = c("enhancer",
     region <- combineRgn(files)
   else
     region <- combineGrpRgn(files, group)
-	if (data != NULL)
+	if (!is.null(data))
 		j <- which(apply(data,1,function(d) sd(d)==0))
   setdiff(unique(c(i, which(ref$id %in% filterRgn(region, ref)$id))), j)
 }
