@@ -5,7 +5,7 @@
 *Irene* is an R package which allows you
   - Find significantly altered genes between two biological conditions from histone ChIP-Seq and DNA methylation tracks (BigWig)
   - Focus on the genes which are associated with more extensive epigenetic modification over targetting enhancers.
-  - Annotate and visualize the global epigenetic variances with network analysis.
+  - Annotate and visualize the global epigenetic variances with network analysis.  
 Using *Irene*, we analyzed the epigenetic networks from multiple histone marks and DNA methylation in [Roadmap](https://www.ncbi.nlm.nih.gov/geo/roadmap/epigenomics/), [BLUEPRINT](http://www.blueprint-epigenome.eu/), and [CEEHRC](http://www.epigenomes.ca/), and the results are presented in [http://qwang-big.github.io/irene-web/](http://qwang-big.github.io/irene-web/).
 
 # INTRODUCTION
@@ -17,7 +17,7 @@ With the help of *Irene*, user not only discover the genes which show significan
 ![example bipartite graph](https://raw.githubusercontent.com/qwang-big/irene-web/master/images/irene_fig.jpg)
 *Fig. 1 Genes with more enhancer alterations have higher rank*
 
-The whole idea has been demonstrated in the Chapter III of Qi Wang's [dissertation](https://github.com/qwang-big/irene-web/blob/master/docs/chapter3.pdf). For the above purposes, we employed singular value decomposition [dPCA](http://www.biostat.jhsph.edu/~hji/dpca/) and random walk ranking [PageRank](http://igraph.org/r/doc/page_rank.html). The epigenetic alterations over genomic regulatory elements between two groups are presented as dPC scores and further to PageRank scores during solving the enhancer-promoter relationships. To begin with, *Irene* starts from the following data inputs. 
+The whole idea has been demonstrated in the Chapter III of Qi Wang's [dissertation](https://github.com/qwang-big/irene-web/blob/master/docs/chapter3.pdf). For the above purposes, we employed singular value decomposition [dPCA](http://www.biostat.jhsph.edu/~hji/dpca/) and random walk ranking [PageRank](http://igraph.org/r/doc/page_rank.html). The epigenetic alterations over genomic regulatory elements between two groups are presented as dPC scores and further to PageRank scores during solving the enhancer-promoter relationships. 
 
 # Installation
 *Irene* can be installed directly from GitHub with the help of *devtools* package:
@@ -30,11 +30,11 @@ If you have problems in intalling the package, please have a look at [FAQs](#faq
 # Prerequisites
 
 ## Genomic regions to be tested
-User need to provide promoters and enhancers regions so that comparisons for differential epigenetic modification can be made for those regions. We also provide pre-defined promoters from [The Eukaryotic Promoter Database](http://epd.vital-it.ch/index.php) and pre-defined from [GeneHancer](http://www.genecards.org/Guide/GeneCard). 
-Given that the enhancers from GeneHancer database are an ensemble of all tissues/cell types, one may need to filter out the unspecific ones by overlapping with the enhancer-specific histone marks, e.g., histone H3 lysine 4 monomethylation (H3K4me1) or the H3K27 acetylation (H3K27ac) marks. 
+User need to provide promoter and enhancer regions to compare their differential epigenetic modifications. We also provide pre-defined promoters from [The Eukaryotic Promoter Database](http://epd.vital-it.ch/index.php) and pre-defined from [GeneHancer](http://www.genecards.org/Guide/GeneCard). 
+Given that the enhancers from GeneHancer database are an ensemble of all tissues/cell types, one may need to filter out the unspecific ones, which can be done by overlapping with the enhancer-specific histone marks, e.g., histone H3 lysine 4 monomethylation (H3K4me1) or the histone 3 lysine 27 acetylation (H3K27ac) marks. 
 
 ## Promoter-enhancer (P-E) interactions
-Enhancer within 1Mb distance to the TSS are considered potential interacting region. In a common sense, the interactions should not cross the topologically associating domains (TAD) boundary. Therefore, we compiled a cell-type specific enhancer-promoter interaction list by excluding the interactions not within the same TAD from [GSE87112](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE87112). Enhancer-promoter interactions probability are estimated using a power-law decay function based on the distances to the TSS. Enhancer-promoter distances for sample tissues can be downloaded from [https://github.com/qwang-big/irene-data/PEdistances](https://github.com/qwang-big/irene-data/tree/master/PEdistances), including:
+Enhancers within 1Mb distance to the transcription start site (TSS) are considered potential promoter-interacting ones. In a common sense, the interactions should not cross the topologically associating domains (TAD) boundary. Therefore, we compiled a cell-type specific enhancer-promoter interaction list by excluding the interactions outside the same TAD from [GSE87112](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE87112). Enhancer-promoter interactions probability are estimated using a power-law decay function based on the distances to the TSS. Enhancer-promoter distances for sample tissues can be downloaded from [https://github.com/qwang-big/irene-data/PEdistances](https://github.com/qwang-big/irene-data/tree/master/PEdistances), including:
  - [H1](https://github.com/qwang-big/irene-data/blob/master/PEdistances/H1.hg19.pair.gz): H1 human embryonic stem cell line
  - [MES](https://github.com/qwang-big/irene-data/blob/master/PEdistances/MES.hg19.pair.gz): H1 BMP4 derived mesendoderm cultured cells
  - [MSC](https://github.com/qwang-big/irene-data/blob/master/PEdistances/MSC.hg19.pair.gz): H1 derived mesenchymal stem cells
@@ -44,7 +44,7 @@ Enhancer within 1Mb distance to the TSS are considered potential interacting reg
 In practice, as TADs between different cell types are relative conserved ([Schmitt AD, 2016](#schmitt-ad-2016)), one can use the H1 cell line in case the TAD of corresponding cell type is not available. 
 
 ## Epigenetic intensity data
-*Irene* requires user to provide [**BigWig**](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format to represent the sequencing density of BS-Seq or ChIP-Seq. User need to create a **data.frame** to indicate the location of the BigWig files, as well as groups and experiment types (as *dataset* column). 
+*Irene* requires user to provide [**BigWig**](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format to represent the sequencing density of BS-Seq or ChIP-Seq. To begin with, user need to create a **data.frame** indicating the location of the BigWig files, as well as groups and experiment types (as *dataset* column). 
 <details><summary>Here is a sample as follows:</summary>
 
 |    | file                                                                                          | group | dataset |
@@ -88,7 +88,7 @@ In practice, as TADs between different cell types are relative conserved ([Schmi
 
 </details>
 
-The **BigWig** files for our test cases were converted from wig files retrieved from [NIH Roadmap Epigenomics Project data gateway](https://www.ncbi.nlm.nih.gov/geo/roadmap/epigenomics/), BLUEPRINT, and [CEEHRC](http://www.epigenomes.ca/), respectively.  Precompiled R objects in our test cases can be retrieved from [here](#precompiled) 
+The **BigWig** files for our test cases were converted from wig files retrieved from [NIH Roadmap Epigenomics Project data gateway](https://www.ncbi.nlm.nih.gov/geo/roadmap/epigenomics/), [BLUEPRINT](http://www.blueprint-epigenome.eu/), and [CEEHRC](http://www.epigenomes.ca/), respectively.  Precompiled R objects in our test cases can be retrieved from [here](#precompiled) 
 
 # USAGE
 ## R environment for the test cases.
@@ -98,24 +98,24 @@ options(stringsAsFactors = FALSE)
 ```
 
 ## Load pre-defined regions
-The pre-defined promoters and enhancers regions with corresponding IDs (precompiled [hg19](https://github.com/qwang-big/irene-data/blob/master/promenh.hg19.bed), [hg38](https://github.com/qwang-big/irene-data/blob/master/promenh.hg38.bed)) need to be loaded first with: 
+The pre-defined promoter and enhancer regions with corresponding IDs (precompiled [hg19](https://github.com/qwang-big/irene-data/blob/master/promenh.hg19.bed), [hg38](https://github.com/qwang-big/irene-data/blob/master/promenh.hg38.bed)) need to be loaded first with: 
 ```r
 bed <- read.table('https://raw.githubusercontent.com/qwang-big/irene-data/master/promenh.hg19.bed')
 ```
 
 ## Import sequencing density data from BigWig files
-Read in the table containing file location, group, dataset information as a **data.frame** (named *meta* in the following case), the use 
+Read in the table containing *file, group, dataset* information as a **data.frame** (named *meta* in the following case), the use 
 ```r
 data <- importBW(meta, bed)
 ```
-to import the density for each regions. *ImportBW* use an external C function from [libBigWig](https://github.com/dpryan79/libBigWig), which is compiled with *Irene* during installation. Its output is equivalent to using *[bigWigAverageOverBed](http://hgdownload.soe.ucsc.edu/admin/exe/)* if BigWig files were processed separately, which can be loaded with another [procedure](#bigwigaverageoverbed) instead. 
+to import the density for each region. *ImportBW* use an external C function from [libBigWig](https://github.com/dpryan79/libBigWig), which is compiled with *Irene* during installation. Its output is equivalent to the *[bigWigAverageOverBed](http://hgdownload.soe.ucsc.edu/admin/exe/)* program, which can process BigWig files multithreadingly with another [procedure](#bigwigaverageoverbed) instead. 
 
 ## Filter out unspecific enhancers
-We only took the regions which are more likely to be true enhancers, therefore we use the following function to get the indices which overlapped with enhancer histone marks (H3K4me1 in the following case). The peaks identified by Roadmap Epigenetics Project were retrieved from [http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated](http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated), and run:
+We only took the regions which are more likely to be true enhancers, therefore the following function is used to get the indices which overlapped with enhancer histone marks (H3K4me1 in the following case). The peaks identified by Roadmap Epigenetics Project were retrieved from [http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated](http://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated), and run:
 ```r
 i <- filterPeak(c("E003-H3K4me1.narrowPeak","E006-H3K4me1.narrowPeak"), bed, group=1:2)
 ```
- <a id="precompiled">**Precompiled R data files in our test cases (see following) contain all the above mentioned objects (_meta, bed, data, i_) for the following tests**.
+ <a id="precompiled">**Below are the precompiled R data files in our test cases (see following) contain all the above mentioned objects (_meta, bed, data, i_) for the following tests**.
 
 | Cancer / primary cells | Controls |
 |------------------------|----------|
@@ -133,7 +133,7 @@ i <- filterPeak(c("E003-H3K4me1.narrowPeak","E006-H3K4me1.narrowPeak"), bed, gro
 | Trophoblast Stem Cells ([TSC](https://github.com/qwang-big/irene-data/blob/master/TSC.hg19.rda)) | Embryonic Stem Cells |
 | H1 BMP4 derived Mesendoderm ([MES](https://github.com/qwang-big/irene-data/blob/master/MES.hg19.rda)) | Embryonic Stem Cells |
 
-*Full R code for analyzing the above datasets is in the [supplymentary](#fullcode). For CLL test case, which is already incorporated in the package, one can simply load necessary dataset with*: 
+*Full R code for analyzing the above datasets is in the [supplymentary](#fullcode). For the CLL test case, which is already incorporated in the package, one can simply load necessary dataset with*: 
 ```r
 data(CLL)
 ```
@@ -168,7 +168,7 @@ The output *res* is a named list which has three keys: *gr*, *Dobs*, and *proj*.
 |     chr6 | 131063357 | 131063417  | EPB41L2_4 | 21.57229 | -12.886749 | -0.8408109 |
 |     chr2 | 158457054 | 158457114   |   PKP4_1 | 21.42755 | -8.421447 | -4.6387676 |
 
-The table is sorted descending by PC1
+The table is sorted descendingly by PC1
 
 * **Dobs**
 The D matrix, which contains the observed differences between the two conditions. This is the data analyzed by dPCA.
@@ -179,29 +179,29 @@ Estimated beta coefficients for each dPC.
 ## Infer promoter-enhancer interaction probabilities according to distances
 Use the following function to convert the promoter-enhancer interactions in a given range of TSS (1Mb in the data provided) to probabilities of interaction.
 
-* Load P-E interactions in H1ESC cell lines, the three columns in *H1* data.frame are enhancer IDs, promoter IDs, P-E distances, respectively. 
+* We first load the P-E interactions in H1ESC cell line, the three columns in *H1* data.frame are enhancer IDs, promoter IDs, P-E distances, respectively. 
 ```r
 H1 <- read.table('https://raw.githubusercontent.com/qwang-big/irene-data/master/PEdistances/H1.hg19.pair')
 ```
 
-* Transform the P-E interactions from bp to Mb:
+* Then transform the P-E interactions from bp to Mb:
 ```r
 H1[,3] <- abs(H1[,3]/1e6)
 ```
 
-* Apply a power-decay function to represent the likelihood of P-E interactions. The choice of power-coefficient is explained in Figure 3.11 and Figure 3.14b of Qi Wang's dissertation. We recommand using -20 for all the test cases. 
+* We apply a power-decay function to represent the likelihood of P-E interactions. The power-coefficient is estimated from several capture Hi-C datasets [Mifsud et al, 2015](https://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2323/), [Javierre et al, ‎2016](https://www.ebi.ac.uk/ega/studies/EGAS00001001911), [Rubin et al, 2017](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE84660), which is explained in Figure 3.11 and Figure 3.14b of Qi Wang's [dissertation](https://github.com/qwang-big/irene-web/blob/master/docs/chapter3.pdf). We recommand using -20 for all the test cases. 
 ```r
 H1[,3] <- exp(-20*H1[,3]+1)
 ```
 
 ## Using PageRank to rank the epigenetic alterations from both enhancers and promoters.
-The PageRank will take in the alteration contribution from enhancers, resulting the ranks of associated promoters get promoted if targeted by highly altered enhancers. 
+The PageRank function will take in the alteration contribution from enhancers, resulting in higher ranks of associated promoters if targeted by highly altered enhancers. 
 ```r
 res$pg <- pageRank(res$gr, H1)
 ```
 
 ## Get the rank of only promoters as well, which will be used to compare with the PageRank rankings. 
-Use the following function to get the order of promoters sorted by PC1, the ones on top of the list indicates higher alteration of the corresponding gene. 
+Use the following function to get the rank of the promoters according to PC1. A higher rank indicates stronger alterations of the corresponding gene.
 ```r
 res$pg$prom <- getPromId(res$gr, pc="PC1")
 ```
@@ -216,14 +216,14 @@ The Empirical Cumulative Distribution Function (ECDF) of the marker gene positio
 ```r
 plotRank(res$pg, markers$CLL)
 ```
-, where we use the CLL marker genes for this test are ordered along the positions of their rankings (Fig. 2), and the area under the curve (AUC) of each ranking list is described in the legend. 
+, where the CLL marker genes for this test are ordered according to the positions of their rankings (Fig. 2), and the area under the curve (AUC) of each ranking list is described in the legend. 
 
 ![cll roc fig](https://raw.githubusercontent.com/qwang-big/irene-web/master/images/irene_roc.jpg)
 
 *Fig. 2 CLL marker gene positions along the ROC curves*
 
-## Network analysis of the enriched pathways of significant epigenetic alterated genes
-Network analysis groups highly-ranked genes according to known gene interaction database, and further searches clusters of genes in biological function databases. Here we loaded Human Protein Reference Database ([HPRD](http://www.hprd.org/)) for grouping genes: 
+## Network analysis of the enriched pathways of significantly epigeneticaly alterated genes
+Network analysis groups highly-ranked genes according to known gene interaction databases, and further searches clusters of genes in biological function databases. In this case, we loaded Human Protein Reference Database ([HPRD](http://www.hprd.org/)) for grouping genes: 
 ```r
 data(hprd)
 ```
@@ -234,7 +234,7 @@ g <- edgeRank(res$pg[[1]], hprd)
 ```
 , where we created a weighted HPRD networks using the edge weights calculated from the PC1 of the genes. 
 
-Afterwards, we create a list of top-ranked sub-networks with desired number, e.g., 15 sub-networks: 
+Using random walk clustering, we got a list of top-ranked sub-networks with desired number, e.g., 15 sub-networks: 
 ```r
 res$gs <- exportMultinets(g, 15)
 ```
@@ -331,8 +331,8 @@ The results presented here are in part based upon data generated by The Canadian
 - <a id="ji-h-2013"></a> Ji H, Li X, Wang Qf, et al. Differential principal component analysis of ChIP-seq. Proceedings of the National Academy of Sciences. 2013;110(17):6789–6794.
 
 # FAQs
-- Q: Package 'XXX' is not available (for R version 3.x.x)
- A: Please install them manually, using: 
+- Q: Package 'XXX' is not available (for R version 3.x.x).  
+A: Please install them manually, using: 
 ```r
 source("https://bioconductor.org/biocLite.R")
 biocLite("GenomeInfoDb","GenomicRanges","IRanges","preprocessCore","S4Vectors","XVector")

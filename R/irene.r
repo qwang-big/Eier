@@ -680,7 +680,7 @@ checkIntegrity <- function(name, fun) {
 
 checkIntegrityFuns <- function(prefix) {
 	all(c(checkIntegrity(paste0(prefix, "comp.csv"), "exportD"),
-		checkIntegrity(paste0(prefix, "marker.csv"), "writeMarkers"),
+		#checkIntegrity(paste0(prefix, "marker.csv"), "writeMarkers"),
 		checkIntegrity(paste0(prefix, "meta.csv"), paste0('write.csv(meta,"',prefix,'meta.csv")')),
 		checkIntegrity(paste0(prefix, "name.csv"), "writeData"),
 		checkIntegrity(paste0(prefix, "rank.csv"), "writeRank"),
@@ -689,12 +689,10 @@ checkIntegrityFuns <- function(prefix) {
 		checkIntegrity(paste0(prefix, "pathways.json"), "exportJSONpathways")))
 }
 	
-exportApps <- function(name, markers=NULL, exdir = ".", check=TRUE) {
+exportApps <- function(name, markers, exdir = ".", check=TRUE) {
 	if (check && !checkIntegrityFuns(name))
 		stop("Cannot export because the above dependencies have not be resolved.")
 	untar(system.file("data", "html.tar.gz", package="irene"), exdir = exdir)
 	writeIndexHtml(name, exdir)
-	if (!is.null(markers)) {
-		writeMarkers(markers, name)
-	}
+	writeMarkers(markers, name)
 }
