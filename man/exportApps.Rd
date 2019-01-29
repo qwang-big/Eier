@@ -1,25 +1,25 @@
 \name{exportApps}
 \alias{exportApps}
 \title{
-Export Dobs
+Export Apps
 }
 \description{
-Export Dobs to a csv file
+Export web applications for visualizing the results
 }
 \usage{
-exportD(Dobs, labels, prefix)
+exportApps(name, markers, exdir = ".", check = TRUE)
 }
 
 \arguments{
 
-\item{Dobs}{
-The D matrix, which contains the observed differences between the two conditions returned by \code{\link{dPCA}}.
+\item{name}{
+The prefix of the experiement name. All the output filenames are followed by the prefix. 
 }
-\item{labels}{
-Vector consists of the labels of each component in the D matrix. 
+\item{genes}{
+A list of gene names. The names of the list are used to present the source of marker genes. 
 }
-\item{file}{
-The filename of the csv file to be exported.
+\item{exdir}{
+The directory name for writing the files to. 
 }
 \item{check}{
 logical for checking the dependencies.
@@ -27,7 +27,7 @@ logical for checking the dependencies.
 }
 
 \details{
-This functions writes a csv file containing the composition of the components which can be further display with the web application \code{net}, \code{rank}, and \code{rna}.  
+This functions writes HTML files for visualizing the results from previous outputs.  
 }
 
 \author{

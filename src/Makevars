@@ -1,4 +1,4 @@
-PKG_LIBS = -lcurl
+PKG_LIBS = -lcurl -lm -lz
 PKG_CPPFLAGS = -w -I./libBigWig -I./dpca
 SOURCES = RcppExports.cpp crl.cpp libBigWig/bwRead.c libBigWig/bwStats.c libBigWig/bwValues.c libBigWig/bwWrite.c libBigWig/io.c dpca/AffyLib.c dpca/CisChromeLib.c dpca/GenomeLib.c dpca/HTSequencingLib.c dpca/MatrixLib.c dpca/MotifLib.c dpca/RandomLib.c dpca/StringLib.c dpca/Alignment.c dpca/FlexModuleInterface.c dpca/GSCALib.c dpca/MathLib.c dpca/MicroarrayLib.c dpca/PhysicalNetworkLib.c dpca/SequenceLib.c dpca/TilingArrayLib.c
 OBJECTS = RcppExports.o crl.o libBigWig/bwRead.o libBigWig/bwStats.o libBigWig/bwValues.o libBigWig/bwWrite.o libBigWig/io.o dpca/AffyLib.o dpca/CisChromeLib.o dpca/GenomeLib.o dpca/HTSequencingLib.o dpca/MatrixLib.o dpca/MotifLib.o dpca/RandomLib.o dpca/StringLib.o dpca/Alignment.o dpca/FlexModuleInterface.o dpca/GSCALib.o dpca/MathLib.o dpca/MicroarrayLib.o dpca/PhysicalNetworkLib.o dpca/SequenceLib.o dpca/TilingArrayLib.o

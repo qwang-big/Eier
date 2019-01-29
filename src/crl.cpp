@@ -27,7 +27,7 @@ double read_bigwig_impl(std::string bwfname, std::string chrom, int start, int e
   bwf = bwOpen(&bwfile[0], NULL, &mode) ;
 
   if (!bwf)
-    exit(1); //stop("Failed to open file: %s\n", bwfname) ;
+    stop("Failed to open file: %s\n", bwfname) ;
 
   double val = 0.0;
   bwOverlappingIntervals_t *intervals = NULL ;
@@ -47,7 +47,7 @@ double read_bigwig_impl(std::string bwfname, std::string chrom, int start, int e
     intervals = bwGetValues(bwf, cur_chrom, start, end, 0) ;
 
     if (!intervals)
-      exit(1); //stop("Failed to retreived intervals for %s\n", chrom) ;
+      stop("Failed to retreived intervals for %s\n", chrom) ;
 
     int nint = intervals->l ;
     for(int i=0; i<nint; ++i) {
@@ -105,30 +105,26 @@ List dPCA_main_impl(int nGroupNum, int nDatasetNum, int nSampleNum, int nPaired,
 	
 	if(vRepNum == NULL)
 	{
-		printf("Error: dPCA_Initialize, cannot create replicate number matrix!\n");
-		exit(EXIT_FAILURE);
+		stop("Error: dPCA_Initialize, cannot create replicate number matrix!\n");
 	}
 	for(int ni=0; ni< nGroupNum; ni++)
 	{
 		vRepNum[ni] = (int *)calloc(nDatasetNum, sizeof(int));
 		if(vRepNum[ni] == NULL)
 		{
-			printf("Error: dPCA_Initialize, cannot create replicate number matrix!\n");
-			exit(EXIT_FAILURE);
+			stop("Error: dPCA_Initialize, cannot create replicate number matrix!\n");
 		}
 	}
 	if(vData == NULL)
 	{
-		printf("Error: dPCA_Initialize, cannot create data matrix!\n");
-		exit(EXIT_FAILURE);
+		stop("Error: dPCA_Initialize, cannot create data matrix!\n");
 	}
 	for(int ni=0; ni<nSampleNum; ni++)
 	{
 		vData[ni] = (float *)calloc(nLociNum, sizeof(float));
 		if(vData[ni] == NULL)
 		{
-			printf("Error: dPCA_Initialize, cannot create data vector!\n");
-			exit(EXIT_FAILURE);
+			stop("Error: dPCA_Initialize, cannot create data vector!\n");
 		}
 	}
 

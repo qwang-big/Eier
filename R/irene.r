@@ -8,19 +8,40 @@ importBW <- function(meta, granges, threads=1) {
     as.data.frame(granges)
   else
     granges
+	# create temp files for every input file
+	tmpfiles <- unlist(lapply(files,function(file) tempfile()))
+	# write genomic regions as a temp bed file
+	bedfile <- tempfile()
+	write.table(gr, bedfile, col.names=FALSE, row.names=FALSE, quote=FALSE, sep="\t")
+	# get an executable bigWigAverageOverBed file
+	func <- system.file(osPath(), "bigWigAverageOverBed", package="irene")
+	if (file.access(func, 1)!=0)
+		Sys.chmod(func, "755", use_umask = FALSE)
+	# test file permission again
+	if (file.access(func, 1)!=0)
+		stop(paste0("I don not have execute permission for ",func))
   if (threads>1) {
-    matrix(unlist(mclapply(files, function(file){
-    cat(paste0("reading ", file, " ...\n"))
-    mclapply(gr, 1, function(r) {
-      readBW(file, r[1], as.integer(r[2]), as.integer(r[3]))
-    })}, mc.cores = threads)), ncol=length(meta[,'file']), byrow=FALSE)
+    mclapply(1:length(files), function(i){
+		if (!file.exists(files[i])) stop(paste0("I cannot find ",files[i]," in ",getwd()))
+    cat(paste0("reading ", files[i], " ...\n"))
+    system(paste0(func,' ',files[i],' ',bedfile,' ',tmpfiles[i]), wait = TRUE)
+		}, mc.cores = threads)
   } else {
-    matrix(unlist(lapply(files, function(file){
-    cat(paste0("reading ", file, " ...\n"))
-    apply(gr, 1, function(r) {
-      readBW(file, r[1], as.integer(r[2]), as.integer(r[3]))
-    })})), ncol=length(meta[,'file']), byrow=FALSE)
+		lapply(1:length(files), function(i){
+		if (!file.exists(files[i])) stop(paste0("I cannot find ",files[i]," in ",getwd()))
+		cat(paste0("reading ", files[i], " ...\n"))
+		system(paste0(func,' ',files[i],' ',bedfile,' ',tmpfiles[i]), wait = TRUE)
+		})
   }
+	data <- matrix(unlist(lapply(tmpfiles,function(f) read.table(f,stringsAsFactors=FALSE)[,4])), ncol = length(tmpfiles), byrow = FALSE)
+	# the rownames should be the same for all the files, use the first one
+	rownames(data) <- read.table(tmpfiles[1],stringsAsFactors=FALSE)[,1]
+	data
+}
+
+osPath <- function(){
+	# only applies to Mac and Linux so far
+	ifelse(Sys.info()['sysname']=="Darwin", "bin/macosx", "bin/linux")
 }
 
 readBW <- function(bwfile, chrom, start, end) {
@@ -44,6 +65,7 @@ filterPeak <- function(files, ref, group=NULL, data=NULL, filter = c("enhancer",
   j <- c()
   if (class(ref)=="data.frame")
     ref = readBED(ref)
+	# keep region id according to the filter
   if (filter=="promoter")
     i <- which(isEnh(ref$id))
   else if (filter=="enhancer")
@@ -52,8 +74,10 @@ filterPeak <- function(files, ref, group=NULL, data=NULL, filter = c("enhancer",
     region <- combineRgn(files)
   else
     region <- combineGrpRgn(files, group)
+	# remove regions with no variance
 	if (!is.null(data))
 		j <- which(apply(data,1,function(d) sd(d)==0))
+	# excluding zero-variance regions
   setdiff(unique(c(i, which(ref$id %in% filterRgn(region, ref)$id))), j)
 }
 
@@ -72,10 +96,12 @@ combineGrpRgn <- function(files, grp) {
 
 filterRgn <- function(region, ref) {
   s <- findOverlaps(region,ref,select="first")
+	# excluding ref overlapped with regions
   ref[unique(s[!is.na(s)])]
 }
 
 isEnh <- function(id) {
+	# GeneHancer Id or user-defined Id
   (grepl("^GH\\d+",id) & nchar(id)>10) | grepl("^chr\\d+_\\d+_\\d+",id)
 }
 
@@ -85,12 +111,16 @@ edgeRank <- function(pg, g, cutoff=0.9, min=1e-7, reverse=TRUE) {
   else if (class(g)=="data.frame")
     g <- graph_from_data_frame(g, directed = FALSE)
   m <- as.matrix(get.edgelist(g))
+	# gene rankings are provided ascendingly by default
   if(reverse) pg=rev(pg)
   m <- matrix(match(m,pg),ncol=2, byrow = FALSE)
+	# edge weight is the sum of the two adjacent nodes
   w <- rowSums(m)
   w[is.na(w)]=min
+	# removing according to a percentage threshold
   w[w<quantile(w, cutoff)]=min
   g <- set_edge_attr(g, "weight", value = w)
+	# also set the node weights according to their rankings
   setGRank(pg, g, "weight", min)
 }
 
@@ -117,8 +147,11 @@ exportMultinets <- function(g, n=5, steps=4, rewire=FALSE, simplify=TRUE) {
   }
   if (simplify) g <- igraph::simplify(g)
   gs <- .walktrapClustering(g, n, steps)
+	# decompose the first three largest networks
   gs2<- lapply(gs[1:3], function(g2) .walktrapClustering(g2,0,steps))
+	# select the largest components and concatenate with the rest of the networks
   gs <- c(gs2[[1]][maxG(gs2[[1]])],gs2[[2]][maxG(gs2[[2]])],gs2[[3]][maxG(gs2[[3]])],gs[-c(1:3)])
+	# order descendingly according to the sum of the node weights
   gs[order(unlist(lapply(gs,function(v) mean(V(v)$weight))), decreasing = TRUE)]
 }
 
@@ -129,6 +162,7 @@ exportMultinets <- function(g, n=5, steps=4, rewire=FALSE, simplify=TRUE) {
     as.numeric(tb[order(tb$Freq,decreasing=TRUE),][seq_len(n),1])
   else
     as.numeric(tb[order(tb$Freq,decreasing=TRUE),][,1])
+	# extract network modules according to the sorted network IDs
   lapply(id, function(i) {
     induced.subgraph(g, vids=which(g1$membership==i))
   })
@@ -136,11 +170,14 @@ exportMultinets <- function(g, n=5, steps=4, rewire=FALSE, simplify=TRUE) {
 
 annotNets <- function(gs, sel=c(94,95), n=5) {
   dbs <- listEnrichrDbs()
+	# by default, only WikiPathways and KEGG are chosen
   annot <- lapply(gs, function(g) enrichr(V(g)$name, dbs[sel,1]))
   lapply(annot, function(x) {
     res <- do.call("rbind",x)
+		# remove uninformative terms
     res <- res[which(is.na(str_locate(res$Term,"PodNet")[,1])),]
     res <- res[which(is.na(str_locate(res$Term,"PluriNet")[,1])),]
+		# output according to the descending combined scores
     res[order(res$Combined.Score, decreasing = TRUE),]
   })
 }
@@ -150,6 +187,7 @@ plotMultinets <- function(gs, cols=NULL, vertex.size=10, plot.label=FALSE, inter
     cols = c("#FFFFFF", "#FFEEEE", "#FFDDDD", "#FFCCCC", "#FFBBBB", "#FFAAAA", "#FF9999", "#FF8888", "#FF7777", "#FF6666", "#FF5555", "#FF4444", "#FF3333", "#FF2222", "#FF1111", "#FF0000")
   invisible(lapply(gs, function(g) {
     w <- V(g)$weight
+		# normalize the node weights in order to fit into the color space
     w <- (w - min(w)) / (max(w) - min(w))
     labels <- if(plot.label) {
       V(g)$name
@@ -162,6 +200,7 @@ plotMultinets <- function(gs, cols=NULL, vertex.size=10, plot.label=FALSE, inter
 }
 
 exportPCs <- function (res, file) {
+	# genomic regions are sorted according their chromosomes first, then their starting positions
   gr=split(res$gr,res$gr$seqnames)
   gr=do.call("rbind",lapply(gr,function(x) x[order(x$start),]))
   write.csv(gr,file=file,row.names=FALSE,quote=FALSE)
@@ -221,6 +260,7 @@ getId <- function(id, type = c("gene", "all", "enhancer", "promoter", "original"
   type = match.arg(type)
   if (type == "gene") {
     id=id[!isEnh(id)]
+		# remove multiple promoter IDs
     id=unique(gsub("_\\d+",replacement,id))
   } else if (type == "all") {
     id=unique(gsub("_\\d+",replacement,id))
@@ -233,6 +273,7 @@ getId <- function(id, type = c("gene", "all", "enhancer", "promoter", "original"
 }
 
 getPromId <- function(gr, pc="PC1"){
+	# sorted by PC1 descendingly by default
   getId(gr[order(abs(gr[,pc]),decreasing=TRUE),'id'], type="gene")
 }
 
@@ -376,12 +417,15 @@ pageRank <- function(pcs, x, damping = 0.85, dWeight=1e-99, fun = NULL, maxTry=1
     # x[,3] <- x[,3]/table(x[,2])[x[,2]]
     colnames(x) <- c("a","b")
     promId <- promId[!(promId %in% c(x[,1],x[,2]))]
-    ## add a dummy node 0 and unappeared gene id into network and assign weights for edges start with 0 small values
+    ## add a dummy node 0 and unpresent gene id into network and assign weights for edges start from 0 with small values
     d <- rep(0,length(promId))
     d1<- .smallPositiveNum(length(promId), dWeight)
+		# append dummy weights to original edge weights
     w <- c(x[,3],d1)
     w[which(w==0)] = .smallPositiveNum(.lw(w==0), dWeight)
+		# append dummy edges to all promoters
     x <- rbind(x[,1:2], data.frame(a=factor(d),b=promId))
+		# normalize edges to 0-1
     if (max(w) > 1)
       w <- w/max(w)
     g <- graph_from_data_frame(x, directed=TRUE)
@@ -398,12 +442,16 @@ pageRank <- function(pcs, x, damping = 0.85, dWeight=1e-99, fun = NULL, maxTry=1
   names(vs) <- names(pcs)[pcd]
   for(pc in pcd) {
   wt <- abs(pcs[,pc])
+	# IDs are ordered according to the PC ascendingly
   id <- id[order(wt, decreasing = FALSE)]
   ix <- id %in% V(g)$name
   id <- id[ix]
+	# set dummy node the smallest weight
   id <- c('0',id)
   vr <- match(V(g)$name, id)
+	# set smallest weight for unmatched nodes
   vr[is.na(vr)] <- 1
+	# set node weights ascendingly
   dt <- c(dWeight, sort(wt, decreasing = FALSE)[ix])
   dt[dt==0] <- dWeight
   if (rewire) {
@@ -416,6 +464,7 @@ pageRank <- function(pcs, x, damping = 0.85, dWeight=1e-99, fun = NULL, maxTry=1
   while(TRUE){
     v <- try(page_rank(g, algo="arpack", personalized=dt[vr], weights=w, directed = TRUE, damping = damping), silent = TRUE)
     iTry <- iTry + 1
+		# try again if weight matrices failed
     if(class(v) != "try-error" | iTry>maxTry) break
     w[which.min(w)] <- .smallPositiveNum(1)
   }
@@ -438,26 +487,27 @@ pageRank <- function(pcs, x, damping = 0.85, dWeight=1e-99, fun = NULL, maxTry=1
     invisible(readline(prompt="Press [enter] to continue"))
 }
 
-.condense <- function(d) {
-  j=1
-  for(i in sort(unique(d))) {
-    d[d==i]=j
-    j=j+1
-  }
-  d
-}
+.condense <- function(d) as.numeric(factor(d,levels=unique(d)))
+
+.rm.na <- function(d) d[!is.na(d)]
 
 extractData <- function(data, meta, datasets, groups=c(1,2), logTransform=TRUE, normalize=TRUE) {
-  j <- meta[,'group'] %in% groups & meta[,'dataset'] %in% datasets
-  meta <- meta[j,]
-  data <- data[,j]
-  i <- order(meta[,'group'])
-  data <- data[,i]
-  colnames(data) <- meta[i,'file']
+  if (!is.null(datasets)) {
+    wId <- which(meta[,'dataset'] %in% datasets)
+    meta <- meta[wId,]
+    data <- data[,wId]
+  }
+  if (!is.null(groups)) {
+    wId <- unlist(lapply(groups,function(d) which(meta[, "group"]==d)))
+    meta <- meta[wId,]
+    data <- data[,wId]
+  }
+  colnames(data) <- meta[,'file']
   if (normalize)
     data <- normalize.quantiles(data)
   if (logTransform)
     data <- log(data+1)
+	# integer-indexed data for reducing color space
   round(data)
 }
 
@@ -476,6 +526,7 @@ writeJSONArray <- function(data, file){
 writeData <- function(data, groupLabels, prefix, n=61, width=2000, name=NULL, intTemp=FALSE){
   filename <- prefix
   data <- order2(data)
+	# use discrete color codes to represent signal ranges
   code <- unlist(strsplit("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",""))
   if (length(code) < n)
     stop("do not support so many colors")
@@ -484,10 +535,13 @@ writeData <- function(data, groupLabels, prefix, n=61, width=2000, name=NULL, in
   else
     name
   i <- seq(which(grepl('PCx',name))+1,length(name))
-  name2<- paste(str_extract(name,"WGB|fractional|Bisulfite|H3K\\w+"),groupLabels[as.integer(str_extract(name,"^\\d+"))], sep = '-')[i]
-  name <- paste(groupLabels[as.integer(str_extract(name,"^\\d+"))],str_extract(name,"WGB|fractional|Bisulfite|H3K\\w+"), sep = '-')[i]
-  name2<- str_replace(name2,"WGB|fractional|Bisulfite","Methylation")
-  name <- str_replace(name, "WGB|fractional|Bisulfite","Methylation")
+	nId <- str_extract(name,"^\\d+")
+	names(groupLabels) <- .rm.na(unique(nId))
+  name2<- paste(str_extract(name,"WGB|Fractional|fractional|Bisulfite|bisulfite|Meth|meth|H3K[A-Za-z0-9]+"),groupLabels[as.integer(str_extract(name,"^\\d+"))], sep = '-')[i]
+  name <- paste(groupLabels[nId],str_extract(name,"WGB|Fractional|fractional|Bisulfite|bisulfite|Meth|meth|H3K[A-Za-z0-9]+"), sep = '-')[i]
+	# standarize conventional names
+  name2<- str_replace(name2,"WGB|Fractional|fractional|Bisulfite|bisulfite","Methylation")
+  name <- str_replace(name, "WGB|Fractional|fractional|Bisulfite|bisulfite","Methylation")
   ix   <- order(name2)
   gr   <- data[,1:3]
   id   <- data[,'id']
@@ -529,6 +583,7 @@ makeBedWins <- function(bed, width=2000) {
 dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, transform=NULL, normlen=NULL, minlen=50, lambda=0.15, fun=function(x) sqrt(mean(x^2)), datasetLabels=NULL, groupLabels=NULL, qnormalize=TRUE, qnormalizeFirst=FALSE, normalize=FALSE, verbose=FALSE, interactive=FALSE, useSVD=FALSE, saveFile=FALSE, processedData=TRUE, removeLowCoverageChIPseq=FALSE, removeLowCoverageChIPseqProbs=0.1, dPCsigns=NULL, nPaired=0, nTransform=0, nColMeanCent=0, nColStand=0, nMColMeanCent=1, nMColStand=0, dSNRCut=5, nUsedPCAZ=0, nUseRB=0, dPeakFDRCut=0.5) {
   if (class(bed)!="data.frame")
   	stop("Please input genomic regions (bed) as data.frame")
+	# make sure the data IDs and bed IDs are the same
 	if (!any(is.na(match(bed[,4],rownames(data)))) && !all(rownames(data)==bed[,4]))
 		data = data[match(bed[,4],rownames(data)),]
   colnames(bed) <- c("seqnames","start","end","id")
@@ -539,8 +594,16 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
     data <- data[,wId]
     datac<- datac[wId]
   }
+	# when the groups selector is a list instead of a vector
+  if (class(groups)=="list") {
+		grp <- rep(NA, nrow(meta))
+		for (i in 1:length(groups)) {
+			grp[meta[,'group'] %in% groups[[i]]] = i
+		}
+		meta[,'group'] <- grp
+	}
   if (!is.null(groups)) {
-    wId <- which(meta[,'group'] %in% groups)
+    wId <- unlist(lapply(groups,function(d) which(meta[, "group"] %in% d)))
     meta <- meta[wId,]
     data <- data[,wId]
     datac<- datac[wId]
@@ -571,28 +634,34 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
   if (is.null(groupLabels)) {
     groupLabels <- seq_len(nGroupNum)
   }
+	# excluding very short regions
   if (!is.null(minlen)) {
     wId <- which(len>minlen)
     bed <- bed[wId,]
     len <- len[wId]
     data<- data[wId,]
   }
+	# normalize genomic regions by length
   if (!is.null(normlen)) {
     wId <- which(meta[,'dataset'] %in% normlen)
     tdata <- data*1000 / len
     data[,wId] <- tdata[,wId]
   }
+	# normalize to the largest library size
   if (normalize) {
     sft <- colSums(data)
     data <- data %*% diag(max(sft)/sft)
   }
+	# if low-signal ChIP-Seq regions are to be removed
   if (removeLowCoverageChIPseq) {
     qv <- max(1,quantile(data, probs=removeLowCoverageChIPseqProbs))
     qi <- apply(data,1,function(x) .any(x>qv, 2))
   }
+	# apply quantile normalization before power-transformation
   if (qnormalizeFirst) {
     data <- normalize.quantiles(data)
   }
+	# make sure all data are greater than zero
 	if (min(data) <= 0)
 		data <- data - min(data) + 1e-5
   if (!is.null(transform)) {
@@ -610,6 +679,7 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
     med <- min(data)
     data[!qi,] <- runif(ncol(data), med - 1e-5, med)
   }
+	# apply quantile normalization after power-transformation
   if (!qnormalizeFirst & qnormalize) {
     data <- normalize.quantiles(data)
   }
@@ -618,6 +688,7 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
   }
   #bed <- as.data.frame(bed)
   nLociNum <- nrow(bed)
+	# use SVD instead of dPCA
   if (useSVD) {
 	g  <- sort(unique(meta$group))
 	mx <- sort(unique(meta$dataset))
@@ -630,6 +701,7 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
 	d  <- d1-d2
 	d  <- list('PC'=svd(d)$u, 'Dobs'=d, 'proj'=t(data.frame('eigenvalue'=rep(0,ncol(d)),'percent_var'=rep(0,ncol(d)),'SNR'=rep(0,ncol(d)),'sig_prc'=rep(0,ncol(d)))))
   }else{
+	# call dPCA function of C implementation
   d <- dPCA_main_impl(nGroupNum, nDatasetNum, nSampleNum, nPaired, nLociNum, .condense(groupId), .condense(datasetId), repNum, sampleName, bed[,1], bed[,2], bed[,3], data, nTransform, nColMeanCent, nColStand, nMColMeanCent, nMColStand, dSNRCut, nUsedPCAZ, nUseRB, dPeakFDRCut)
   d$proj <- matrix(unlist(lapply(1:4,function(i) d[[i]])),nrow=4,byrow=TRUE,dimnames=list(names(d)[1:4]))
   d$Dobs <- matrix(d$Dobs, ncol=nDatasetNum, byrow=TRUE)
@@ -638,6 +710,7 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
   pcc <- paste0("PC",seq_len(nDatasetNum))
   colnames(pc) <- pcc
   bed <- cbind(bed, pc)
+	# reverse signs of dPCs
   if (!is.null(dPCsigns))
     pc <- t(t(pc)*dPCsigns)
   bed$PCx <- apply(pc,1,fun)
@@ -646,6 +719,7 @@ dPCA <- function(meta, bed, data, sampleId=NULL, groups=1:2, datasets=NULL, tran
   list('gr'=bed[order(abs(bed$PC1),decreasing=TRUE),], 'Dobs'=d$Dobs, 'proj'=d$proj)
 }
 
+# sort genomic regions according their chromosomes first, then their starting positions
 order2 <- function(bed) do.call("rbind",lapply(split(bed,bed[,1]), function(x) x[order(x[,2]),]))
 
 .boxcoxTrans <- function(x, lam) {

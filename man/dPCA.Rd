@@ -37,7 +37,7 @@ Data.frame or matrix which contains the intensity data for each input genomic re
 Vector of sample IDs used to be tested, equivalent to the line numbers of the meta information. 
 }
 \item{groups}{
-Vector of group IDs used to be tested, specified in the group fields of the meta information. 
+Vector or List of group IDs used to be tested, specified in the group fields of the meta information. If the input is a list, for example \code{list(1:3,4)}, all IDs in the first vector from the list are considered as the same group. 
 }
 \item{datasets}{
 Vector of dataset IDs used to be tested, specified in the datasets fields of the meta information. 
@@ -108,5 +108,5 @@ Qi Wang
 \examples{
 data(CLL)
 j <- c(1,2,6,8)
-res <- dPCA(meta, bed, data, datasets=j, transform=j, normlen=j, processedData=TRUE, verbose=TRUE)
+res <- dPCA(meta, bed, data, groups=1:2, datasets=j, transform=j, normlen=j, processedData=TRUE, verbose=TRUE)
 }

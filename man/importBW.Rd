@@ -37,6 +37,6 @@ Qi Wang
 \examples{
 meta <- data.frame(file=c(system.file("data", "test.bw", package="irene"), 
 	system.file("data", "ctrl.bw", package="irene")),group=1:2,dataset=1)
-bed  <- data.frame(chr=c("chr1","chr1"),start=c(100000,187000),end=c(123000,188000),id=1:2)
+bed  <- data.frame(chr=c("chr1","chr1"),start=c(100100,187000),end=c(123000,188000),id=1:2)
 data <- importBW(meta, bed)
 }
